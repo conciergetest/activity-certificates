@@ -3,8 +3,6 @@ from supabase import create_client, Client
 import pandas as pd
 from datetime import datetime, date
 
-# ── CONFIGURACION SUPABASE ──
-# Reemplaza estos valores con los de tu proyecto
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", "https://TU-PROYECTO.supabase.co")
 SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", "TU-ANON-KEY-AQUI")
 
@@ -14,7 +12,6 @@ def get_supabase_client() -> Client:
 
 supabase = get_supabase_client()
 
-# ── CONFIGURACION DE LA PAGINA ──
 st.set_page_config(
     page_title="Activity Certificates DB",
     page_icon="📋",
@@ -22,7 +19,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Estilos CSS
 st.markdown('''
 <style>
     .main-header { font-size: 2.2rem; font-weight: 700; color: #0d47a1; margin-bottom: 0.5rem; }
@@ -33,8 +29,6 @@ st.markdown('''
     .stAlert { border-radius: 8px; }
 </style>
 ''', unsafe_allow_html=True)
-
-# ── FUNCIONES CRUD CON SUPABASE ──
 
 def add_certificate(data):
     try:
@@ -81,7 +75,6 @@ def get_certificate_by_id(cert_id):
 
 def get_monthly_summary():
     try:
-        # Usamos RPC (funcion SQL) o hacemos el groupby en Python
         response = supabase.table("certificates").select("*").execute()
         df = pd.DataFrame(response.data)
         if df.empty:
@@ -127,7 +120,6 @@ def get_next_ticket_number():
     except Exception:
         return "VT000000"
 
-# ── SIDEBAR: NAVEGACION ──
 st.sidebar.markdown("## 📋 Menu")
 page = st.sidebar.radio("", [
     "🏠 Dashboard",
@@ -138,19 +130,57 @@ page = st.sidebar.radio("", [
     "⚙️ Configuracion"
 ])
 
-# PAGINA: DASHBOARD
 if page == "🏠 Dashboard":
     st.markdown("<div class='main-header'>Activity Certificates Dashboard</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Resumen general</div>", unsafe_allow_html=True)
+    
     df = get_all_certificates()
+    
     if df.empty:
         st.info("📭 No hay certificados registrados aun. Ve a 'Nuevo Certificate' para agregar uno.")
     else:
+        if "created_at" in df.columns:
+            df["created_at"] = pd.to_datetime(df["created_at"]).dt.strftime("%Y-%m-%d")
+        
+        current_month = datetime.now().strftime("%Y-%m")
+        
+        st.subheader("🔍 Filtros")
+        fcol1, fcol2, fcol3, fcol4, fcol5 = st.columns(5)
+        with fcol1:
+            months_list = ["Mes actual (" + current_month + ")"] + sorted(df["activity_date"].str[:7].unique().tolist(), reverse=True)
+            filter_month = st.selectbox("Filtrar por Mes", months_list)
+        with fcol2:
+            providers_list = ["Todos"] + sorted(df["provider"].dropna().unique().tolist())
+            filter_provider = st.selectbox("Filtrar por Provider", providers_list)
+        with fcol3:
+            filter_guest = st.text_input("Buscar por Guest Name")
+        with fcol4:
+            filter_ticket = st.text_input("Buscar por Ticket (VT)")
+        with fcol5:
+            concierges_list = ["Todos"] + sorted(df["concierge"].dropna().unique().tolist())
+            filter_concierge = st.selectbox("Filtrar por Concierge", concierges_list)
+        
+        filtered = df.copy()
+        if filter_month != "Mes actual (" + current_month + ")":
+            filtered = filtered[filtered["activity_date"].str.startswith(filter_month)]
+        else:
+            filtered = filtered[filtered["activity_date"].str.startswith(current_month)]
+        if filter_provider != "Todos":
+            filtered = filtered[filtered["provider"] == filter_provider]
+        if filter_guest:
+            filtered = filtered[filtered["guest_name"].str.contains(filter_guest, case=False, na=False)]
+        if filter_ticket:
+            filtered = filtered[filtered["ticket_number"].str.contains(filter_ticket, case=False, na=False)]
+        if filter_concierge != "Todos":
+            filtered = filtered[filtered["concierge"] == filter_concierge]
+        
+        st.markdown(f"**Mostrando {len(filtered)} registros**")
+        
         col1, col2, col3, col4 = st.columns(4)
-        total_tickets = len(df)
-        total_amount = df["total_amount"].sum()
-        signed_count = len(df[df["signed"] == "YES"])
-        cargado_count = len(df[df["cargado"] == "YES"])
+        total_tickets = len(filtered)
+        total_amount = filtered["total_amount"].sum()
+        signed_count = len(filtered[filtered["signed"] == "YES"])
+        cargado_count = len(filtered[filtered["cargado"] == "YES"])
         with col1:
             st.markdown(f"<div class='metric-card'><div class='metric-value'>{total_tickets}</div><div class='metric-label'>Total Tickets</div></div>", unsafe_allow_html=True)
         with col2:
@@ -159,6 +189,7 @@ if page == "🏠 Dashboard":
             st.markdown(f"<div class='metric-card' style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);'><div class='metric-value'>{signed_count}</div><div class='metric-label'>Firmados</div></div>", unsafe_allow_html=True)
         with col4:
             st.markdown(f"<div class='metric-card' style='background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);'><div class='metric-value'>{cargado_count}</div><div class='metric-label'>Cargados</div></div>", unsafe_allow_html=True)
+        
         st.markdown("---")
         st.subheader("📊 Resumen por Mes")
         monthly = get_monthly_summary()
@@ -166,10 +197,10 @@ if page == "🏠 Dashboard":
             monthly["total_amount"] = monthly["total_amount"].apply(lambda x: f"${x:,.2f}")
             monthly.columns = ["Mes", "Tickets", "Monto Total", "Firmados", "Cargados"]
             st.dataframe(monthly, use_container_width=True, hide_index=True)
-        st.subheader("📝 Ultimos 10 Registros")
-        st.dataframe(df.head(10), use_container_width=True, hide_index=True)
+        
+        st.subheader("📝 Registros del Mes")
+        st.dataframe(filtered, use_container_width=True, hide_index=True)
 
-# PAGINA: NUEVO CERTIFICATE
 elif page == "➕ Nuevo Certificate":
     st.markdown("<div class='main-header'>Nuevo Activity Certificate</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Completa el formulario para registrar un nuevo certificate</div>", unsafe_allow_html=True)
@@ -212,7 +243,6 @@ elif page == "➕ Nuevo Certificate":
                 else:
                     st.error(f"❌ Error: {response}")
 
-# PAGINA: VER / EDITAR / ELIMINAR
 elif page == "📋 Ver / Editar / Eliminar":
     st.markdown("<div class='main-header'>Gestionar Certificates</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Busca, filtra, edita o elimina registros</div>", unsafe_allow_html=True)
@@ -299,7 +329,6 @@ elif page == "📋 Ver / Editar / Eliminar":
                         else:
                             st.error(f"❌ Error: {response}")
 
-# PAGINA: REPORTES POR MES
 elif page == "📊 Reportes por Mes":
     st.markdown("<div class='main-header'>Reportes por Mes</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Analisis detallado mensual</div>", unsafe_allow_html=True)
@@ -327,7 +356,6 @@ elif page == "📊 Reportes por Mes":
             provider_chart = get_provider_summary()
             st.bar_chart(provider_chart.set_index("provider")["total_amount"])
 
-# PAGINA: IMPORTAR / EXPORTAR
 elif page == "📤 Importar / Exportar":
     st.markdown("<div class='main-header'>Importar / Exportar Datos</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Importa o exporta la base de datos</div>", unsafe_allow_html=True)
@@ -397,7 +425,6 @@ elif page == "📤 Importar / Exportar":
                     use_container_width=True
                 )
 
-# PAGINA: CONFIGURACION
 elif page == "⚙️ Configuracion":
     st.markdown("<div class='main-header'>Configuracion</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Informacion del sistema</div>", unsafe_allow_html=True)
@@ -431,6 +458,7 @@ elif page == "⚙️ Configuracion":
         st.info("Tabla: certificates | Proyecto: Activity Certificates | Waldorf Astoria.")
     except Exception as e:
         st.error(f"❌ Error de conexion: {e}")
+
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 Estadisticas")
 df_stats = get_all_certificates()
