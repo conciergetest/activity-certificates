@@ -445,37 +445,36 @@ elif page == "📤 Importar / Exportar":
 
 # PAGINA: CONFIGURACION
 elif page == "⚙️ Configuracion":
-    st.markdown("<div class='main-header'>Configuracion de Supabase</div>", unsafe_allow_html=True)
-    st.markdown("""
-    ### 🔑 Como configurar tu proyecto Supabase
+    st.markdown("<div class='main-header'>Configuracion</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sub-header'>Informacion del sistema</div>", unsafe_allow_html=True)
     
-    **1. Crea tu proyecto en [supabase.com](https://supabase.com)**
-    - Registrate gratis
-    - Crea un nuevo proyecto
-    - Espera a que se provisione
+    with st.container():
+        st.markdown("### 🏨 Activity Certificates DB")
+        st.caption("Sistema de gestion de certificados de actividades para el departamento de Concierge.")
+        st.markdown("---")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Desarrollado por</p>", unsafe_allow_html=True)
+            st.markdown("<p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:700; color:#fff;'>Fred Wayne</p>", unsafe_allow_html=True)
+        with col2:
+            st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Departamento</p>", unsafe_allow_html=True)
+            st.markdown("<p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:600; color:#ccc;'>Concierge</p>", unsafe_allow_html=True)
+        with col3:
+            st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Hotel</p>", unsafe_allow_html=True)
+            st.markdown("<p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:600; color:#ccc;'>Waldorf Astoria</p>", unsafe_allow_html=True)
+        with col4:
+            st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Ubicacion</p>", unsafe_allow_html=True)
+            st.markdown("<p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:600; color:#ccc;'>Punta Cacique, Costa Rica 🇨🇷</p>", unsafe_allow_html=True)
     
-    **2. Crea la tabla `certificates`**
-    - Ve a SQL Editor > New query
-    - Pega el script SQL que te proporcione
-    - Ejecuta
+    st.markdown("---")
+    st.caption("v1.0 | Activity Certificates DB |")
     
-    **3. Obtén tus credenciales**
-    - Ve a Project Settings > API
-    - Copia `URL` y `anon public` key
-    
-    **4. Configura en Streamlit**
-    Crea un archivo `.streamlit/secrets.toml` con:
-    ```toml
-    SUPABASE_URL = "https://tu-proyecto.supabase.co"
-    SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIs..."
-    ```
-    
-    **5. Ejecuta la app**
-    ```bash
-    streamlit run app_supabase.py
-    ```
-    """)
-    st.info("💡 La conexion actual usa valores por defecto. Reemplazalos en el codigo o usa secrets.toml")
-
-# Footer sidebar
+    st.subheader("🔌 Estado de Conexion")
+    try:
+        test = supabase.table("certificates").select("count", count="exact").limit(1).execute()
+        st.success("✅ Conectado a Base de Datos correctamente")
+        st.info("Tabla: certificates | Proyecto: Activity Certificates | Waldorf Astoria.")
+    except Exception as e:
+        st.error(f"❌ Error de conexion: {e}")
 st.sidebar.markdown("---")
