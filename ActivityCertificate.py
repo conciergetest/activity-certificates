@@ -385,52 +385,54 @@ elif page == "📤 Importar / Exportar":
 
 # PAGINA: CONFIGURACION
 elif page == "⚙️ Configuracion":
-    st.markdown("<div class='main-header'>Configuracion de Supabase</div>", unsafe_allow_html=True)
+    st.markdown("<div class='main-header'>Configuracion</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sub-header'>Informacion del sistema</div>", unsafe_allow_html=True)
+    
     st.markdown("""
-    ### 🔑 Como configurar tu proyecto Supabase
-    
-    **1. Crea tu proyecto en [supabase.com](https://supabase.com)**
-    - Registrate gratis
-    - Crea un nuevo proyecto
-    - Espera a que se provisione
-    
-    **2. Crea la tabla `certificates`**
-    - Ve a SQL Editor > New query
-    - Pega el script SQL que te proporcione
-    - Ejecuta
-    
-    **3. Obtén tus credenciales**
-    - Ve a Project Settings > API
-    - Copia `URL` y `anon public` key
-    
-    **4. Configura en Streamlit**
-    Crea un archivo `.streamlit/secrets.toml` con:
-    ```toml
-    SUPABASE_URL = "https://tu-proyecto.supabase.co"
-    SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIs..."
-    ```
-    
-    **5. Ejecuta la app**
-    ```bash
-    streamlit run app_supabase.py
-    ```
+    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 2rem; border-radius: 16px; border: 1px solid #333;">
+        <h3 style="color: #667eea; margin-top: 0;">🏨 Activity Certificates DB</h3>
+        <p style="color: #aaa; font-size: 0.95rem; line-height: 1.6;">
+            Sistema de gestion de certificados de actividades para el departamento de Concierge.
+        </p>
+        
+        <hr style="border: none; border-top: 1px solid #333; margin: 1.5rem 0;">
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div>
+                <p style="margin: 0; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;">Desarrollado por</p>
+                <p style="margin: 4px 0 0 0; font-size: 1.1rem; font-weight: 700; color: #fff;">Fred Wayne</p>
+            </div>
+            <div>
+                <p style="margin: 0; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;">Departamento</p>
+                <p style="margin: 4px 0 0 0; font-size: 1.1rem; font-weight: 600; color: #ccc;">Concierge</p>
+            </div>
+            <div>
+                <p style="margin: 0; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;">Hotel</p>
+                <p style="margin: 4px 0 0 0; font-size: 1.1rem; font-weight: 600; color: #ccc;">Waldorf Astoria</p>
+            </div>
+            <div>
+                <p style="margin: 0; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;">Ubicacion</p>
+                <p style="margin: 4px 0 0 0; font-size: 1.1rem; font-weight: 600; color: #ccc;">Punta Cacique, Costa Rica 🇨🇷</p>
+            </div>
+        </div>
+        
+        <hr style="border: none; border-top: 1px solid #333; margin: 1.5rem 0;">
+        
+        <p style="margin: 0; font-size: 0.8rem; color: #666; text-align: center;">
+            v1.0 | Activity Certificates DB | Powered by Streamlit + Supabase
+        </p>
+    </div>
     """)
-    st.info("💡 La conexion actual usa valores por defecto. Reemplazalos en el codigo o usa secrets.toml")
-
-# ── SIDEBAR FOOTER / CREDITOS ──
-st.sidebar.markdown("---")
-st.sidebar.markdown("""
-<div style="text-align: center; padding: 10px 0;">
-    <p style="margin: 0; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;">Desarrollado por</p>
-    <p style="margin: 4px 0 12px 0; font-size: 1rem; font-weight: 700; color: #fff;">Fred Wayne</p>
-
-    <p style="margin: 0; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;">Departamento</p>
-    <p style="margin: 4px 0 12px 0; font-size: 0.95rem; font-weight: 600; color: #ccc;">Concierge</p>
-
-    <p style="margin: 0; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;">Hotel</p>
-    <p style="margin: 4px 0 0 0; font-size: 0.9rem; font-weight: 600; color: #ccc; line-height: 1.4;">Waldorf Astoria<br>at Punta Cacique<br>Costa Rica 🇨🇷</p>
-</div>
-""", unsafe_allow_html=True)
+    
+    # Mostrar estado de conexion
+    st.markdown("---")
+    st.subheader("🔌 Estado de Conexion")
+    try:
+        test = supabase.table("certificates").select("count", count="exact").limit(1).execute()
+        st.success("✅ Conectado a Supabase correctamente")
+        st.info(f"Tabla: certificates | Proyecto: {SUPABASE_URL.split('//')[1].split('.')[0]}")
+    except Exception as e:
+        st.error(f"❌ Error de conexion: {e}")
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 Estadisticas")
@@ -440,6 +442,5 @@ if not df_stats.empty:
     st.sidebar.metric("Monto Total", f"${df_stats['total_amount'].sum():,.2f}")
 else:
     st.sidebar.info("Sin datos aun")
-
 st.sidebar.markdown("---")
-st.sidebar.caption("v1.0 | Activity Certificates DB")
+st.sidebar.caption("v1.0 | Activity Certificates DB + Supabase")
