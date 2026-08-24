@@ -796,14 +796,14 @@ elif page == "⚙️ Configuracion":
             st.markdown("<p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:600; color:#ccc;'>Punta Cacique, Costa Rica 🇨🇷</p>", unsafe_allow_html=True)
     
     st.markdown("---")
-    st.caption("v1.0 | Activity Certificates DB | Powered by Streamlit + Supabase")
+    st.caption("v1.0 | Activity Certificates DB |")
     
     # Mostrar estado de conexion
     st.subheader("🔌 Estado de Conexion")
     try:
         test = supabase.table("certificates").select("count", count="exact").limit(1).execute()
-        st.success("✅ Conectado a Supabase correctamente")
-        st.info(f"Tabla: certificates | Proyecto: {SUPABASE_URL.split('//')[1].split('.')[0]}")
+        st.success("✅ Conectado a Base de Datos correctamente")
+        st.info("Tabla: certificates | Proyecto: Activity Certificates | Waldorf Astoria.")
     except Exception as e:
         st.error(f"❌ Error de conexion: {e}")
 
