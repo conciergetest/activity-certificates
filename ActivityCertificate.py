@@ -422,7 +422,7 @@ elif page == "⚙️ Configuracion":
             v1.0 | Activity Certificates DB | Powered by Streamlit + Supabase
         </p>
     </div>
-    """)
+    """, unsafe_allow_html=True)
     
     # Mostrar estado de conexion
     st.markdown("---")
