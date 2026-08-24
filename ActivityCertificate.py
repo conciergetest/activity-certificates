@@ -258,7 +258,7 @@ if page == "🏠 Dashboard":
 
     st.markdown("<div class='main-header'>Activity Certificates Dashboard</div>", unsafe_allow_html=True)
 
-    st.markdown("<div class='sub-header'>Resumen general - Datos en la nube con Supabase</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sub-header'>Resumen general</div>", unsafe_allow_html=True)
 
     df = get_all_certificates()
 
@@ -320,7 +320,7 @@ elif page == "➕ Nuevo Certificate":
 
     st.markdown("<div class='main-header'>Nuevo Activity Certificate</div>", unsafe_allow_html=True)
 
-    st.markdown("<div class='sub-header'>Completa el formulario para registrar un nuevo certificate en Supabase</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sub-header'>Completa el formulario para registrar un nuevo certificate</div>", unsafe_allow_html=True)
 
     with st.form("new_certificate_form"):
 
@@ -350,7 +350,7 @@ elif page == "➕ Nuevo Certificate":
 
             notes = st.text_area("📝 Notas adicionales", placeholder="Cualquier informacion extra...")
 
-        submitted = st.form_submit_button("💾 Guardar en Supabase", use_container_width=True)
+        submitted = st.form_submit_button("💾 Guardar", use_container_width=True)
 
         if submitted:
 
@@ -404,7 +404,7 @@ elif page == "📋 Ver / Editar / Eliminar":
 
     st.markdown("<div class='main-header'>Gestionar Certificates</div>", unsafe_allow_html=True)
 
-    st.markdown("<div class='sub-header'>Busca, filtra, edita o elimina registros en Supabase</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sub-header'>Busca, filtra, edita o elimina registros</div>", unsafe_allow_html=True)
 
     df = get_all_certificates()
 
@@ -512,11 +512,11 @@ elif page == "📋 Ver / Editar / Eliminar":
 
                     with ecol1:
 
-                        update_btn = st.form_submit_button("💾 Actualizar en Supabase", use_container_width=True)
+                        update_btn = st.form_submit_button("💾 Actualizar", use_container_width=True)
 
                     with ecol2:
 
-                        delete_btn = st.form_submit_button("🗑️ Eliminar de Supabase", use_container_width=True)
+                        delete_btn = st.form_submit_button("🗑️ Eliminar", use_container_width=True)
 
                     if update_btn:
 
@@ -578,7 +578,7 @@ elif page == "📊 Reportes por Mes":
 
     st.markdown("<div class='main-header'>Reportes por Mes</div>", unsafe_allow_html=True)
 
-    st.markdown("<div class='sub-header'>Analisis detallado mensual desde Supabase</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sub-header'>Analisis detallado mensual</div>", unsafe_allow_html=True)
 
     monthly = get_monthly_summary()
 
@@ -634,13 +634,13 @@ elif page == "📤 Importar / Exportar":
 
     st.markdown("<div class='main-header'>Importar / Exportar Datos</div>", unsafe_allow_html=True)
 
-    st.markdown("<div class='sub-header'>Migra tus archivos Excel a Supabase o exporta la base de datos</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sub-header'>Importa o exporta la base de datos</div>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
     with col1:
 
-        st.subheader("📥 Importar a Supabase desde CSV")
+        st.subheader("📥 Importar desde CSV")
 
         st.info("Formato esperado: guest_name, ticket_number, total_amount, activity_date, provider, concierge, guest_arrival_date, signed, cargado")
 
@@ -656,7 +656,7 @@ elif page == "📤 Importar / Exportar":
 
                 st.dataframe(import_df.head(), use_container_width=True)
 
-                if st.button("📥 Importar a Supabase", use_container_width=True):
+                if st.button("📥 Importar", use_container_width=True):
 
                     imported = 0
 
@@ -702,7 +702,7 @@ elif page == "📤 Importar / Exportar":
 
                             skipped += 1
 
-                    st.success(f"✅ {imported} registros importados a Supabase. {skipped} omitidos.")
+                    st.success(f"✅ {imported} registros importados. {skipped} omitidos.")
 
                     st.balloons()
 
@@ -712,7 +712,7 @@ elif page == "📤 Importar / Exportar":
 
     with col2:
 
-        st.subheader("📤 Exportar desde Supabase a CSV")
+        st.subheader("📤 Exportar a CSV")
 
         df_export = get_all_certificates()
 
@@ -825,4 +825,4 @@ else:
 
 st.sidebar.markdown("---")
 
-st.sidebar.caption("v1.0 | Activity Certificates DB + Supabase")
+st.sidebar.caption("v1.0 | Activity Certificates DB")
