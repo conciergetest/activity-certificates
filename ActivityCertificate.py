@@ -417,7 +417,21 @@ elif page == "⚙️ Configuracion":
     """)
     st.info("💡 La conexion actual usa valores por defecto. Reemplazalos en el codigo o usa secrets.toml")
 
-# Footer sidebar
+# ── SIDEBAR FOOTER / CREDITOS ──
+st.sidebar.markdown("---")
+st.sidebar.markdown("""
+<div style="text-align: center; padding: 10px 0;">
+    <p style="margin: 0; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;">Desarrollado por</p>
+    <p style="margin: 4px 0 12px 0; font-size: 1rem; font-weight: 700; color: #fff;">Fred Wayne</p>
+
+    <p style="margin: 0; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;">Departamento</p>
+    <p style="margin: 4px 0 12px 0; font-size: 0.95rem; font-weight: 600; color: #ccc;">Concierge</p>
+
+    <p style="margin: 0; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;">Hotel</p>
+    <p style="margin: 4px 0 0 0; font-size: 0.9rem; font-weight: 600; color: #ccc; line-height: 1.4;">Waldorf Astoria<br>at Punta Cacique<br>Costa Rica 🇨🇷</p>
+</div>
+""", unsafe_allow_html=True)
+
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 Estadisticas")
 df_stats = get_all_certificates()
@@ -426,5 +440,6 @@ if not df_stats.empty:
     st.sidebar.metric("Monto Total", f"${df_stats['total_amount'].sum():,.2f}")
 else:
     st.sidebar.info("Sin datos aun")
+
 st.sidebar.markdown("---")
-st.sidebar.caption("v1.0 | Activity Certificates DB + Supabase")
+st.sidebar.caption("v1.0 | Activity Certificates DB")
