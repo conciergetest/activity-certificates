@@ -3,6 +3,8 @@ from supabase import create_client, Client
 import pandas as pd
 from datetime import datetime, date
 
+# ── CONFIGURACION SUPABASE ──
+# Reemplaza estos valores con los de tu proyecto
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", "https://TU-PROYECTO.supabase.co")
 SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", "TU-ANON-KEY-AQUI")
 
@@ -12,6 +14,7 @@ def get_supabase_client() -> Client:
 
 supabase = get_supabase_client()
 
+# ── CONFIGURACION DE LA PAGINA ──
 st.set_page_config(
     page_title="Activity Certificates DB",
     page_icon="📋",
@@ -19,6 +22,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Estilos CSS
 st.markdown('''
 <style>
     .main-header { font-size: 2.2rem; font-weight: 700; color: #0d47a1; margin-bottom: 0.5rem; }
@@ -29,6 +33,8 @@ st.markdown('''
     .stAlert { border-radius: 8px; }
 </style>
 ''', unsafe_allow_html=True)
+
+# ── FUNCIONES CRUD CON SUPABASE ──
 
 def add_certificate(data):
     try:
@@ -75,6 +81,7 @@ def get_certificate_by_id(cert_id):
 
 def get_monthly_summary():
     try:
+        # Usamos RPC (funcion SQL) o hacemos el groupby en Python
         response = supabase.table("certificates").select("*").execute()
         df = pd.DataFrame(response.data)
         if df.empty:
@@ -120,6 +127,7 @@ def get_next_ticket_number():
     except Exception:
         return "VT000000"
 
+# ── SIDEBAR: NAVEGACION ──
 st.sidebar.markdown("## 📋 Menu")
 page = st.sidebar.radio("", [
     "🏠 Dashboard",
@@ -130,20 +138,24 @@ page = st.sidebar.radio("", [
     "⚙️ Configuracion"
 ])
 
+# PAGINA: DASHBOARD
 if page == "🏠 Dashboard":
     st.markdown("<div class='main-header'>Activity Certificates Dashboard</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Resumen general</div>", unsafe_allow_html=True)
-    
+
     df = get_all_certificates()
-    
+
     if df.empty:
         st.info("📭 No hay certificados registrados aun. Ve a 'Nuevo Certificate' para agregar uno.")
     else:
+        # Formatear created_at a solo fecha
         if "created_at" in df.columns:
             df["created_at"] = pd.to_datetime(df["created_at"]).dt.strftime("%Y-%m-%d")
-        
+
+        # Obtener mes en curso
         current_month = datetime.now().strftime("%Y-%m")
-        
+
+        # Filtros del Dashboard
         st.subheader("🔍 Filtros")
         fcol1, fcol2, fcol3, fcol4, fcol5 = st.columns(5)
         with fcol1:
@@ -159,7 +171,8 @@ if page == "🏠 Dashboard":
         with fcol5:
             concierges_list = ["Todos"] + sorted(df["concierge"].dropna().unique().tolist())
             filter_concierge = st.selectbox("Filtrar por Concierge", concierges_list)
-        
+
+        # Aplicar filtros
         filtered = df.copy()
         if filter_month != "Mes actual (" + current_month + ")":
             filtered = filtered[filtered["activity_date"].str.startswith(filter_month)]
@@ -173,9 +186,10 @@ if page == "🏠 Dashboard":
             filtered = filtered[filtered["ticket_number"].str.contains(filter_ticket, case=False, na=False)]
         if filter_concierge != "Todos":
             filtered = filtered[filtered["concierge"] == filter_concierge]
-        
+
         st.markdown(f"**Mostrando {len(filtered)} registros**")
-        
+
+                # Estadísticas del sidebar filtradas por mes seleccionado        st.sidebar.markdown("---")        st.sidebar.markdown("### 📊 Estadisticas del Mes")        st.sidebar.metric("Total Registros", len(filtered))        st.sidebar.metric("Monto Total", f"${filtered['total_amount'].sum():,.2f}")                # Métricas basadas en los datos filtrados
         col1, col2, col3, col4 = st.columns(4)
         total_tickets = len(filtered)
         total_amount = filtered["total_amount"].sum()
@@ -189,18 +203,19 @@ if page == "🏠 Dashboard":
             st.markdown(f"<div class='metric-card' style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);'><div class='metric-value'>{signed_count}</div><div class='metric-label'>Firmados</div></div>", unsafe_allow_html=True)
         with col4:
             st.markdown(f"<div class='metric-card' style='background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);'><div class='metric-value'>{cargado_count}</div><div class='metric-label'>Cargados</div></div>", unsafe_allow_html=True)
-        
+
         st.markdown("---")
-        st.subheader("📊 Resumen por Mes")
+        st.subheader("📊 Resumen")
         monthly = get_monthly_summary()
         if not monthly.empty:
             monthly["total_amount"] = monthly["total_amount"].apply(lambda x: f"${x:,.2f}")
             monthly.columns = ["Mes", "Tickets", "Monto Total", "Firmados", "Cargados"]
             st.dataframe(monthly, use_container_width=True, hide_index=True)
-        
+
         st.subheader("📝 Registros del Mes")
         st.dataframe(filtered, use_container_width=True, hide_index=True)
 
+# PAGINA: NUEVO CERTIFICATE
 elif page == "➕ Nuevo Certificate":
     st.markdown("<div class='main-header'>Nuevo Activity Certificate</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Completa el formulario para registrar un nuevo certificate</div>", unsafe_allow_html=True)
@@ -243,6 +258,7 @@ elif page == "➕ Nuevo Certificate":
                 else:
                     st.error(f"❌ Error: {response}")
 
+# PAGINA: VER / EDITAR / ELIMINAR
 elif page == "📋 Ver / Editar / Eliminar":
     st.markdown("<div class='main-header'>Gestionar Certificates</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Busca, filtra, edita o elimina registros</div>", unsafe_allow_html=True)
@@ -329,6 +345,7 @@ elif page == "📋 Ver / Editar / Eliminar":
                         else:
                             st.error(f"❌ Error: {response}")
 
+# PAGINA: REPORTES POR MES
 elif page == "📊 Reportes por Mes":
     st.markdown("<div class='main-header'>Reportes por Mes</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Analisis detallado mensual</div>", unsafe_allow_html=True)
@@ -356,6 +373,7 @@ elif page == "📊 Reportes por Mes":
             provider_chart = get_provider_summary()
             st.bar_chart(provider_chart.set_index("provider")["total_amount"])
 
+# PAGINA: IMPORTAR / EXPORTAR
 elif page == "📤 Importar / Exportar":
     st.markdown("<div class='main-header'>Importar / Exportar Datos</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Importa o exporta la base de datos</div>", unsafe_allow_html=True)
@@ -425,47 +443,39 @@ elif page == "📤 Importar / Exportar":
                     use_container_width=True
                 )
 
+# PAGINA: CONFIGURACION
 elif page == "⚙️ Configuracion":
-    st.markdown("<div class='main-header'>Configuracion</div>", unsafe_allow_html=True)
-    st.markdown("<div class='sub-header'>Informacion del sistema</div>", unsafe_allow_html=True)
+    st.markdown("<div class='main-header'>Configuracion de Supabase</div>", unsafe_allow_html=True)
+    st.markdown("""
+    ### 🔑 Como configurar tu proyecto Supabase
     
-    with st.container():
-        st.markdown("### 🏨 Activity Certificates DB")
-        st.caption("Sistema de gestion de certificados de actividades para el departamento de Concierge.")
-        st.markdown("---")
-        
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Desarrollado por</p>", unsafe_allow_html=True)
-            st.markdown("<p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:700; color:#fff;'>Fred Wayne</p>", unsafe_allow_html=True)
-        with col2:
-            st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Departamento</p>", unsafe_allow_html=True)
-            st.markdown("<p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:600; color:#ccc;'>Concierge</p>", unsafe_allow_html=True)
-        with col3:
-            st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Hotel</p>", unsafe_allow_html=True)
-            st.markdown("<p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:600; color:#ccc;'>Waldorf Astoria</p>", unsafe_allow_html=True)
-        with col4:
-            st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Ubicacion</p>", unsafe_allow_html=True)
-            st.markdown("<p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:600; color:#ccc;'>Punta Cacique, Costa Rica 🇨🇷</p>", unsafe_allow_html=True)
+    **1. Crea tu proyecto en [supabase.com](https://supabase.com)**
+    - Registrate gratis
+    - Crea un nuevo proyecto
+    - Espera a que se provisione
     
-    st.markdown("---")
-    st.caption("v1.0 | Activity Certificates DB |")
+    **2. Crea la tabla `certificates`**
+    - Ve a SQL Editor > New query
+    - Pega el script SQL que te proporcione
+    - Ejecuta
     
-    st.subheader("🔌 Estado de Conexion")
-    try:
-        test = supabase.table("certificates").select("count", count="exact").limit(1).execute()
-        st.success("✅ Conectado a Base de Datos correctamente")
-        st.info("Tabla: certificates | Proyecto: Activity Certificates | Waldorf Astoria.")
-    except Exception as e:
-        st.error(f"❌ Error de conexion: {e}")
+    **3. Obtén tus credenciales**
+    - Ve a Project Settings > API
+    - Copia `URL` y `anon public` key
+    
+    **4. Configura en Streamlit**
+    Crea un archivo `.streamlit/secrets.toml` con:
+    ```toml
+    SUPABASE_URL = "https://tu-proyecto.supabase.co"
+    SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIs..."
+    ```
+    
+    **5. Ejecuta la app**
+    ```bash
+    streamlit run app_supabase.py
+    ```
+    """)
+    st.info("💡 La conexion actual usa valores por defecto. Reemplazalos en el codigo o usa secrets.toml")
 
+# Footer sidebar
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 📊 Estadisticas")
-df_stats = get_all_certificates()
-if not df_stats.empty:
-    st.sidebar.metric("Total Registros", len(df_stats))
-    st.sidebar.metric("Monto Total", f"${df_stats['total_amount'].sum():,.2f}")
-else:
-    st.sidebar.info("Sin datos aun")
-st.sidebar.markdown("---")
-st.sidebar.caption("v1.0 | Activity Certificates DB")
