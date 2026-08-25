@@ -415,7 +415,9 @@ if page == "🏠 Dashboard":
             st.dataframe(monthly, use_container_width=True, hide_index=True)
 
         st.subheader("📝 Registros del Mes")
-        st.dataframe(filtered, use_container_width=True, hide_index=True)
+        display_df = filtered.copy()
+        display_df["total_amount"] = display_df["total_amount"].apply(lambda x: f"${x:,.2f}")
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
 
 # PAGINA: NUEVO CERTIFICATE
 elif page == "➕ Nuevo Certificate":
@@ -529,7 +531,9 @@ elif page == "📋 Ver / Editar / Eliminar":
         if filter_provider != "Todos":
             filtered = filtered[filtered["provider"] == filter_provider]
         st.markdown(f"**Mostrando {len(filtered)} de {len(df)} registros**")
-        st.dataframe(filtered, use_container_width=True, hide_index=True)
+        display_df = filtered.copy()
+        display_df["total_amount"] = display_df["total_amount"].apply(lambda x: f"${x:,.2f}")
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
         st.markdown("---")
         st.subheader("✏️ Editar o 🗑️ Eliminar Certificate")
         edit_col1, edit_col2 = st.columns([1, 3])
