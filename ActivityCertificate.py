@@ -317,6 +317,37 @@ def get_provider_summary():
         st.error(f"Error: {e}")
         return pd.DataFrame()
 
+def get_certificates_by_month(month_str):
+    """Obtiene todos los certificates de un mes especifico para backup."""
+    try:
+        response = supabase.table("certificates").select("*").execute()
+        df = pd.DataFrame(response.data)
+        if df.empty:
+            return pd.DataFrame()
+        return df[df["activity_date"].str.startswith(month_str)]
+    except Exception as e:
+        st.error(f"Error: {e}")
+        return pd.DataFrame()
+
+def delete_certificates_by_month(month_str):
+    """Borra todos los certificates de un mes especifico usando rango de fechas."""
+    try:
+        from datetime import datetime, timedelta
+        # Parse year and month
+        year, month = int(month_str[:4]), int(month_str[5:7])
+        start_date = datetime(year, month, 1).strftime("%Y-%m-%d")
+        # Calculate next month
+        if month == 12:
+            end_year, end_month = year + 1, 1
+        else:
+            end_year, end_month = year, month + 1
+        end_date = datetime(end_year, end_month, 1).strftime("%Y-%m-%d")
+
+        response = supabase.table("certificates").delete().gte("activity_date", start_date).lt("activity_date", end_date).execute()
+        return True, response
+    except Exception as e:
+        return False, str(e)
+
 def get_next_ticket_number():
     try:
         response = supabase.table("certificates").select("ticket_number").execute()
@@ -338,6 +369,7 @@ page = st.sidebar.radio("", [
     "📋 Ver / Editar / Eliminar",
     "📊 Reportes por Mes",
     "📤 Importar / Exportar",
+    "🗑️ Limpiar por Mes",
     "⚙️ Configuracion"
 ])
 
@@ -752,6 +784,61 @@ elif page == "📤 Importar / Exportar":
                     mime="text/csv",
                     use_container_width=True
                 )
+
+# PAGINA: LIMPIAR POR MES
+elif page == "🗑️ Limpiar por Mes":
+    st.markdown("<div class='main-header'>Limpiar por Mes</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sub-header'>Descarga un backup y elimina registros antiguos por mes</div>", unsafe_allow_html=True)
+
+    df_all = get_all_certificates()
+    if df_all.empty:
+        st.info("📭 No hay certificados registrados.")
+    else:
+        months = sorted(df_all["activity_date"].str[:7].unique().tolist(), reverse=True)
+
+        st.subheader("📅 Selecciona el mes a limpiar")
+        selected_month = st.selectbox("Mes", months)
+
+        if selected_month:
+            month_df = get_certificates_by_month(selected_month)
+
+            if month_df.empty:
+                st.warning(f"No hay registros para {selected_month}.")
+            else:
+                st.info(f"📋 **{len(month_df)} registros** encontrados para **{selected_month}**")
+
+                # Show preview
+                with st.expander("👁️ Vista previa de registros a eliminar"):
+                    preview_df = month_df.copy()
+                    if "total_amount" in preview_df.columns:
+                        preview_df["total_amount"] = preview_df["total_amount"].apply(lambda x: f"${x:,.2f}")
+                    st.dataframe(preview_df, use_container_width=True, hide_index=True)
+
+                st.markdown("---")
+                st.subheader("📥 Paso 1: Descargar Backup")
+                month_csv = month_df.to_csv(index=False).encode("utf-8")
+                st.download_button(
+                    label=f"⬇️ Descargar Backup {selected_month} (CSV)",
+                    data=month_csv,
+                    file_name=f"backup_{selected_month}.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+
+                st.markdown("---")
+                st.subheader("🗑️ Paso 2: Eliminar Registros")
+                st.error("⚠️ **ATENCION**: Esta accion es IRREVERSIBLE. Asegurate de haber descargado el backup antes de continuar.")
+
+                confirm = st.checkbox(f"Confirmo que quiero eliminar PERMANENTEMENTE los {len(month_df)} registros de {selected_month}")
+                if confirm:
+                    if st.button("🗑️ ELIMINAR MES PERMANENTEMENTE", use_container_width=True, type="primary"):
+                        success, response = delete_certificates_by_month(selected_month)
+                        if success:
+                            st.success(f"✅ {len(month_df)} registros de {selected_month} eliminados correctamente!")
+                            st.balloons()
+                            st.rerun()
+                        else:
+                            st.error(f"❌ Error al eliminar: {response}")
 
 # PAGINA: CONFIGURACION
 elif page == "⚙️ Configuracion":
