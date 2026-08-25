@@ -112,9 +112,9 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     c.setFont("Helvetica", 11)
     c.drawString(4.4*inch, y, "Event")
     c.line(4.85*inch, y - 0.05*inch, 10.0*inch, y - 0.05*inch)
-    if cert_data.get("notes"):
+    if cert_data.get("event"):
         c.setFont("Helvetica-Bold", 11)
-        c.drawString(4.9*inch, y + 0.02*inch, str(cert_data.get("notes", "")).upper())
+        c.drawString(4.9*inch, y + 0.02*inch, str(cert_data.get("event", "")).upper())
     c.setFont("Helvetica", 11)
 
     # --- LINEA 4: Pickup/Meet | Time | Day | Date ---
@@ -518,7 +518,8 @@ elif page == "➕ Nuevo Certificate":
             signed = st.checkbox("✍️ Signed (Yes)")
             cargado = st.checkbox("📥 Cargado (Yes)")
             meeting_point = st.text_input("📍 Meeting Point", placeholder="Ej: Lobby")
-            notes = st.text_area("📝 Notas adicionales", placeholder="Cualquier informacion extra...")
+            event = st.text_input("🎯 Event", placeholder="Ej: Half Day Catamaran")
+            notes = st.text_area("📝 Notas / Detalles", placeholder="Detalles adicionales de la actividad...")
             kids = st.number_input("👶 Kids", min_value=0, step=1, value=0)
         submitted = st.form_submit_button("💾 Guardar", use_container_width=True)
 
@@ -542,6 +543,7 @@ elif page == "➕ Nuevo Certificate":
                     "notes": notes.strip(),
                     "activity_time": activity_time.strip() if activity_time else None,
                     "meeting_point": meeting_point.strip() if meeting_point else None,
+                    "event": event.strip() if event else None,
                     "adults": int(adults) if adults > 0 else None,
                     "kids": int(kids) if kids > 0 else None,
                     "room": room.strip().upper() if room else None
@@ -656,7 +658,8 @@ elif page == "📋 Ver / Editar / Eliminar":
                             e_signed = st.checkbox("Signed", value=cert["signed"])
                             e_cargado = st.checkbox("Cargado", value=cert["cargado"])
                             e_meeting = st.text_input("Meeting Point", value=cert["meeting_point"] if cert.get("meeting_point") else "")
-                            e_notes = st.text_area("Notas", value=cert["notes"] if cert["notes"] else "")
+                            e_event = st.text_input("Event", value=cert["event"] if cert.get("event") else "")
+                            e_notes = st.text_area("Notas / Detalles", value=cert["notes"] if cert["notes"] else "")
                             e_kids = st.number_input("Kids", min_value=0, step=1, value=int(cert["kids"]) if cert.get("kids") else 0)
                         ecol1, ecol2 = st.columns(2)
                         with ecol1:
@@ -677,6 +680,7 @@ elif page == "📋 Ver / Editar / Eliminar":
                                 "notes": e_notes.strip(),
                                 "activity_time": e_time.strip() if e_time else None,
                                 "meeting_point": e_meeting.strip() if e_meeting else None,
+                                "event": e_event.strip() if e_event else None,
                                 "adults": int(e_adults) if e_adults > 0 else None,
                                 "kids": int(e_kids) if e_kids > 0 else None,
                                 "room": e_room.strip().upper() if e_room else None
@@ -732,7 +736,7 @@ elif page == "📤 Importar / Exportar":
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("📥 Importar desde CSV")
-        st.info("Formato esperado: guest_name, ticket_number, total_amount, activity_date, provider, concierge, guest_arrival_date, signed, cargado, activity_time, meeting_point, adults, kids, room")
+        st.info("Formato esperado: guest_name, ticket_number, total_amount, activity_date, provider, concierge, guest_arrival_date, signed, cargado, activity_time, meeting_point, event, adults, kids, room")
         uploaded_file = st.file_uploader("Selecciona tu archivo CSV", type=["csv"])
         if uploaded_file is not None:
             try:
@@ -758,6 +762,7 @@ elif page == "📤 Importar / Exportar":
                                 "cargado": bool(int(row.get("cargado", 0))),
                                 "activity_time": str(row.get("activity_time", "")).strip() if pd.notna(row.get("activity_time")) else None,
                                 "meeting_point": str(row.get("meeting_point", "")).strip() if pd.notna(row.get("meeting_point")) else None,
+                                "event": str(row.get("event", "")).strip() if pd.notna(row.get("event")) and str(row.get("event", "")).strip() else None,
                                 "adults": int(row.get("adults", 0)) if pd.notna(row.get("adults")) and int(row.get("adults", 0)) > 0 else None,
                                 "kids": int(row.get("kids", 0)) if pd.notna(row.get("kids")) and int(row.get("kids", 0)) > 0 else None,
                                 "room": str(row.get("room", "")).strip().upper() if pd.notna(row.get("room")) and str(row.get("room", "")).strip() else None
