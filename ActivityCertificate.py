@@ -342,8 +342,15 @@ page = st.sidebar.radio("", [
 
 # PAGINA: DASHBOARD
 if page == "🏠 Dashboard":
-    st.markdown("<div class='main-header'>Activity Certificates Dashboard</div>", unsafe_allow_html=True)
-    st.markdown("<div class='sub-header'>Resumen general</div>", unsafe_allow_html=True)
+    dash_col1, dash_col2 = st.columns([3, 1])
+    with dash_col1:
+        st.markdown("<div class='main-header'>Activity Certificates Dashboard</div>", unsafe_allow_html=True)
+        st.markdown("<div class='sub-header'>Resumen general</div>", unsafe_allow_html=True)
+    with dash_col2:
+        try:
+            st.image("FredWayneLOGO.jpeg", width=180)
+        except Exception:
+            pass
 
     df = get_all_certificates()
 
