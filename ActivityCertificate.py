@@ -20,7 +20,7 @@ def get_supabase_client() -> Client:
 supabase = get_supabase_client()
 
 # ── CONSTANTES GLOBALES ──
-ADMIN_PASSWORD = st.secrets.get("ADMIN_PASSWORD", "waldorf2026")
+ADMIN_PASSWORD = st.secrets.get("ADMIN_PASSWORD")
 
 # ── CONFIGURACION DE LA PAGINA ──
 st.set_page_config(
