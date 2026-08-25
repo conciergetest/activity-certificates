@@ -348,13 +348,9 @@ if page == "🏠 Dashboard":
         st.markdown("<div class='main-header'>Activity Certificates Dashboard</div>", unsafe_allow_html=True)
         st.markdown("<div class='sub-header'>Resumen general</div>", unsafe_allow_html=True)
     with dash_col2:
-        try:
-            st.image("FredWayneLOGO.jpeg", width=180)
-        except Exception:
-            pass
         # Reloj en tiempo real con JavaScript (se actualiza sin recargar la pagina)
         clock_html = """
-        <div id="live-clock" style="text-align:right; margin-top:8px; font-family:monospace;">
+        <div id="live-clock" style="text-align:right; margin-bottom:8px; font-family:monospace;">
             <div id="clock-time" style="font-size:1.6rem; font-weight:700; color:#00FFFF; text-shadow:0 0 8px #00FFFF;"></div>
             <div id="clock-date" style="font-size:1.1rem; font-weight:700; color:#00FFFF; text-shadow:0 0 6px #00FFFF; margin-top:4px;"></div>
         </div>
@@ -371,6 +367,10 @@ if page == "🏠 Dashboard":
         </script>
         """
         html(clock_html, height=90)
+        try:
+            st.image("FredWayneLOGO.jpeg", width=180)
+        except Exception:
+            pass
 
     df = get_all_certificates()
 
