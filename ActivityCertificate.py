@@ -2,9 +2,13 @@ import streamlit as st
 from supabase import create_client, Client
 import pandas as pd
 from datetime import datetime, date
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+from reportlab.pdfgen import canvas
+from reportlab.lib.colors import black
+import io
 
 # ── CONFIGURACION SUPABASE ──
-# Reemplaza estos valores con los de tu proyecto
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", "https://TU-PROYECTO.supabase.co")
 SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", "TU-ANON-KEY-AQUI")
 
@@ -33,6 +37,183 @@ st.markdown('''
     .stAlert { border-radius: 8px; }
 </style>
 ''', unsafe_allow_html=True)
+
+# ── FUNCION PARA GENERAR PDF ──
+def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    # --- HEADER ---
+    # Logo Waldorf Astoria (derecha)
+    try:
+        c.drawImage(logo_path, width - 2.2*inch, height - 1.1*inch, 
+                   width=1.6*inch, height=0.7*inch, preserveAspectRatio=True, mask="auto")
+    except Exception:
+        pass
+
+    # Titulo (izquierda)
+    c.setFont("Helvetica-Bold", 26)
+    c.drawString(0.5*inch, height - 0.85*inch, "ACTIVITY")
+    c.drawString(0.5*inch, height - 1.25*inch, "CERTIFICATE")
+
+    # Subtitulo hotel
+    c.setFont("Helvetica", 8)
+    c.drawString(width - 2.2*inch, height - 1.35*inch, "WALDORF ASTORIA")
+    c.drawString(width - 2.2*inch, height - 1.5*inch, "COSTA RICA • PUNTA CACIQUE")
+
+    # --- LINEA 1: Concierge ---
+    y = height - 1.9*inch
+    c.setFont("Helvetica", 10)
+    c.drawString(0.5*inch, y, "Concierge")
+    c.line(1.4*inch, y - 0.05*inch, 5.8*inch, y - 0.05*inch)
+    if cert_data.get("concierge"):
+        c.drawString(1.4*inch, y + 0.05*inch, str(cert_data.get("concierge", "")).upper())
+
+    # --- LINEA 2: Name | Room | Confirmed with | On ---
+    y = height - 2.35*inch
+    c.drawString(0.5*inch, y, "Name")
+    c.line(1.0*inch, y - 0.05*inch, 3.6*inch, y - 0.05*inch)
+    if cert_data.get("guest_name"):
+        c.drawString(1.0*inch, y + 0.05*inch, str(cert_data.get("guest_name", "")).upper())
+
+    c.drawString(3.75*inch, y, "Room")
+    c.line(4.2*inch, y - 0.05*inch, 5.0*inch, y - 0.05*inch)
+
+    c.drawString(5.15*inch, y, "Confirmed with")
+    c.line(6.3*inch, y - 0.05*inch, 7.4*inch, y - 0.05*inch)
+
+    c.drawString(7.55*inch, y, "On")
+    c.line(7.9*inch, y - 0.05*inch, 8.3*inch, y - 0.05*inch)
+    if cert_data.get("guest_arrival_date"):
+        c.drawString(7.9*inch, y + 0.05*inch, str(cert_data.get("guest_arrival_date", "")))
+
+    # --- LINEA 3: Vendor | Event ---
+    y = height - 2.8*inch
+    c.drawString(0.5*inch, y, "Vendor")
+    c.line(1.0*inch, y - 0.05*inch, 3.6*inch, y - 0.05*inch)
+    if cert_data.get("provider"):
+        c.drawString(1.0*inch, y + 0.05*inch, str(cert_data.get("provider", "")).upper())
+
+    c.drawString(3.75*inch, y, "Event")
+    c.line(4.2*inch, y - 0.05*inch, 8.3*inch, y - 0.05*inch)
+
+    # --- LINEA 4: Pickup/Meet | Time | Day | Date ---
+    y = height - 3.25*inch
+    # Checkboxes
+    c.rect(0.5*inch, y - 0.12*inch, 0.14*inch, 0.14*inch)
+    c.drawString(0.7*inch, y, "Pickup at Porte cochere")
+
+    c.rect(0.5*inch, y - 0.42*inch, 0.14*inch, 0.14*inch)
+    c.drawString(0.7*inch, y - 0.3*inch, "Meet at")
+    c.line(1.3*inch, y - 0.35*inch, 3.6*inch, y - 0.35*inch)
+
+    c.drawString(3.75*inch, y, "Time")
+    c.line(4.2*inch, y - 0.05*inch, 5.2*inch, y - 0.05*inch)
+
+    c.drawString(5.35*inch, y, "Day")
+    c.line(5.75*inch, y - 0.05*inch, 7.3*inch, y - 0.05*inch)
+    activity_date = cert_data.get("activity_date", "")
+    if activity_date:
+        try:
+            day_name = datetime.strptime(str(activity_date), "%Y-%m-%d").strftime("%A").upper()
+            c.drawString(5.75*inch, y + 0.05*inch, day_name)
+        except Exception:
+            pass
+
+    c.drawString(7.45*inch, y, "Date")
+    c.line(7.85*inch, y - 0.05*inch, 8.3*inch, y - 0.05*inch)
+    if activity_date:
+        c.drawString(7.85*inch, y + 0.05*inch, str(activity_date))
+
+    # --- NOTES ---
+    y = height - 3.85*inch
+    c.drawString(0.5*inch, y, "Notes")
+    c.line(1.0*inch, y - 0.05*inch, 8.3*inch, y - 0.05*inch)
+    # Area de notas (lineas adicionales)
+    c.line(1.0*inch, y - 0.35*inch, 8.3*inch, y - 0.35*inch)
+    c.line(1.0*inch, y - 0.65*inch, 8.3*inch, y - 0.65*inch)
+    c.line(1.0*inch, y - 0.95*inch, 8.3*inch, y - 0.95*inch)
+    notes = cert_data.get("notes", "")
+    if notes:
+        text_obj = c.beginText(1.05*inch, y - 0.25*inch)
+        text_obj.setFont("Helvetica", 9)
+        for line in str(notes).split("\n")[:4]:
+            text_obj.textLine(line)
+        c.drawText(text_obj)
+
+    # --- CANCELLATION FEE (izquierda) ---
+    y = height - 5.3*inch
+    c.setFont("Helvetica", 9)
+    c.drawString(0.5*inch, y, "A 100% cancellation fee is applicable if")
+    c.drawString(0.5*inch, y - 0.18*inch, "cancelation within 48 hours of confirmed activity")
+
+    # Guest signature
+    c.line(0.5*inch, y - 0.75*inch, 3.8*inch, y - 0.75*inch)
+    c.drawCentredString(2.15*inch, y - 0.95*inch, "Guest's signature")
+
+    # Waiver ok / Logged checkboxes
+    c.rect(0.5*inch, y - 1.35*inch, 0.14*inch, 0.14*inch)
+    if cert_data.get("signed"):
+        c.drawString(0.53*inch, y - 1.32*inch, "X")
+    c.drawString(0.7*inch, y - 1.25*inch, "Waiver ok")
+
+    c.rect(2.0*inch, y - 1.35*inch, 0.14*inch, 0.14*inch)
+    if cert_data.get("cargado"):
+        c.drawString(2.03*inch, y - 1.32*inch, "X")
+    c.drawString(2.2*inch, y - 1.25*inch, "Logged")
+
+    # --- TABLA DERECHA (Adults, Children, Totals) ---
+    table_x = 4.5*inch
+    table_top = height - 5.0*inch
+    row_h = 0.32*inch
+    col1_w = 1.4*inch
+    col2_w = 1.0*inch
+    col3_w = 1.0*inch
+    total_w = col1_w + col2_w + col3_w
+
+    rows = [
+        ("Adults", "", "Each"),
+        ("Children", "", "Each"),
+        ("Post to", "Sub Total", ""),
+        ("", "", ""),
+        ("", "Tax", ""),
+        ("", "Total", ""),
+        ("", "Total", "")
+    ]
+
+    for i, (col1, col2, col3) in enumerate(rows):
+        y_pos = table_top - (i + 1) * row_h
+        # Horizontal line
+        c.line(table_x, y_pos, table_x + total_w, y_pos)
+        # Text
+        c.setFont("Helvetica", 9)
+        if col1:
+            c.drawString(table_x + 0.08*inch, y_pos + 0.1*inch, col1)
+        if col2:
+            c.drawString(table_x + col1_w + 0.08*inch, y_pos + 0.1*inch, col2)
+        if col3:
+            c.drawString(table_x + col1_w + col2_w + 0.08*inch, y_pos + 0.1*inch, col3)
+        # Fill Total amount
+        if col2 == "Total" and cert_data.get("total_amount") is not None:
+            total = float(cert_data.get("total_amount", 0))
+            c.drawString(table_x + col1_w + col2_w + 0.08*inch, y_pos + 0.1*inch, f"${total:,.2f}")
+
+    # Top border
+    c.line(table_x, table_top, table_x + total_w, table_top)
+    # Vertical lines
+    c.line(table_x, table_top, table_x, table_top - len(rows)*row_h)
+    c.line(table_x + col1_w, table_top, table_x + col1_w, table_top - len(rows)*row_h)
+    c.line(table_x + col1_w + col2_w, table_top, table_x + col1_w + col2_w, table_top - len(rows)*row_h)
+    c.line(table_x + total_w, table_top, table_x + total_w, table_top - len(rows)*row_h)
+
+    # --- TICKET NUMBER (esquina inferior izquierda, referencia) ---
+    c.setFont("Helvetica", 7)
+    c.drawString(0.5*inch, 0.4*inch, f"Ref: {cert_data.get('ticket_number', '')}")
+
+    c.save()
+    buffer.seek(0)
+    return buffer
 
 # ── FUNCIONES CRUD CON SUPABASE ──
 
@@ -81,7 +262,6 @@ def get_certificate_by_id(cert_id):
 
 def get_monthly_summary():
     try:
-        # Usamos RPC (funcion SQL) o hacemos el groupby en Python
         response = supabase.table("certificates").select("*").execute()
         df = pd.DataFrame(response.data)
         if df.empty:
@@ -119,13 +299,13 @@ def get_next_ticket_number():
         response = supabase.table("certificates").select("ticket_number").execute()
         df = pd.DataFrame(response.data)
         if df.empty:
-            return "VT000000"
+            return "VT000001"
         df["num"] = df["ticket_number"].str.extract(r"VT(\d+)").astype(int)
         max_num = df["num"].max()
         next_num = max_num + 1
         return f"VT{next_num:06d}"
     except Exception:
-        return "VT000000"
+        return "VT000001"
 
 # ── SIDEBAR: NAVEGACION ──
 st.sidebar.markdown("## 📋 Menu")
@@ -148,14 +328,11 @@ if page == "🏠 Dashboard":
     if df.empty:
         st.info("📭 No hay certificados registrados aun. Ve a 'Nuevo Certificate' para agregar uno.")
     else:
-        # Formatear created_at a solo fecha
         if "created_at" in df.columns:
             df["created_at"] = pd.to_datetime(df["created_at"]).dt.strftime("%Y-%m-%d")
 
-        # Obtener mes en curso
         current_month = datetime.now().strftime("%Y-%m")
 
-        # Filtros del Dashboard
         st.subheader("🔍 Filtros")
         fcol1, fcol2, fcol3, fcol4, fcol5 = st.columns(5)
         with fcol1:
@@ -172,7 +349,6 @@ if page == "🏠 Dashboard":
             concierges_list = ["Todos"] + sorted(df["concierge"].dropna().unique().tolist())
             filter_concierge = st.selectbox("Filtrar por Concierge", concierges_list)
 
-        # Aplicar filtros
         filtered = df.copy()
         if filter_month != "Mes actual (" + current_month + ")":
             filtered = filtered[filtered["activity_date"].str.startswith(filter_month)]
@@ -189,7 +365,11 @@ if page == "🏠 Dashboard":
 
         st.markdown(f"**Mostrando {len(filtered)} registros**")
 
-                # Estadísticas del sidebar filtradas por mes seleccionado        st.sidebar.markdown("---")        st.sidebar.markdown("### 📊 Estadisticas del Mes")        st.sidebar.metric("Total Registros", len(filtered))        st.sidebar.metric("Monto Total", f"${filtered['total_amount'].sum():,.2f}")                # Métricas basadas en los datos filtrados
+        st.sidebar.markdown("---")
+        st.sidebar.markdown("### 📊 Estadisticas del Mes")
+        st.sidebar.metric("Total Registros", len(filtered))
+        st.sidebar.metric("Monto Total", f"${filtered['total_amount'].sum():,.2f}")
+
         col1, col2, col3, col4 = st.columns(4)
         total_tickets = len(filtered)
         total_amount = filtered["total_amount"].sum()
@@ -219,6 +399,7 @@ if page == "🏠 Dashboard":
 elif page == "➕ Nuevo Certificate":
     st.markdown("<div class='main-header'>Nuevo Activity Certificate</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Completa el formulario para registrar un nuevo certificate</div>", unsafe_allow_html=True)
+
     with st.form("new_certificate_form"):
         col1, col2 = st.columns(2)
         with col1:
@@ -235,6 +416,7 @@ elif page == "➕ Nuevo Certificate":
             cargado = st.checkbox("📥 Cargado (Yes)")
             notes = st.text_area("📝 Notas adicionales", placeholder="Cualquier informacion extra...")
         submitted = st.form_submit_button("💾 Guardar", use_container_width=True)
+
         if submitted:
             if not guest_name or not ticket_number or total_amount <= 0:
                 st.error("❌ Por favor completa los campos obligatorios: Guest Name, Ticket Number y Total Amount.")
@@ -255,6 +437,18 @@ elif page == "➕ Nuevo Certificate":
                 if success:
                     st.success(f"✅ Certificate {ticket_number} guardado correctamente!")
                     st.balloons()
+
+                    # GENERAR PDF
+                    st.markdown("---")
+                    st.subheader("📄 Descargar Certificate en PDF")
+                    pdf_buffer = generate_certificate_pdf(data, logo_path="LogoWaldorf.png")
+                    st.download_button(
+                        label="⬇️ Descargar PDF",
+                        data=pdf_buffer,
+                        file_name=f"{ticket_number}_certificate.pdf",
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
                 else:
                     st.error(f"❌ Error: {response}")
 
@@ -298,6 +492,21 @@ elif page == "📋 Ver / Editar / Eliminar":
         if cert is None:
             st.warning("No se encontro un certificate con ese ID.")
         else:
+            # BOTON PARA DESCARGAR PDF DEL CERTIFICADO EXISTENTE
+            st.markdown("---")
+            pdf_col1, pdf_col2 = st.columns(2)
+            with pdf_col1:
+                pdf_buffer = generate_certificate_pdf(cert, logo_path="LogoWaldorf.png")
+                st.download_button(
+                    label="📄 Descargar PDF de este Certificate",
+                    data=pdf_buffer,
+                    file_name=f"{cert['ticket_number']}_certificate.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
+            with pdf_col2:
+                st.info(f"Ticket: **{cert['ticket_number']}** | Guest: **{cert['guest_name']}**")
+
             with st.expander(f"Editando: {cert['ticket_number']} - {cert['guest_name']}", expanded=True):
                 with st.form("edit_form"):
                     ec1, ec2 = st.columns(2)
@@ -447,12 +656,12 @@ elif page == "📤 Importar / Exportar":
 elif page == "⚙️ Configuracion":
     st.markdown("<div class='main-header'>Configuracion</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Informacion del sistema</div>", unsafe_allow_html=True)
-    
+
     with st.container():
         st.markdown("### 🏨 Activity Certificates DB")
         st.caption("Sistema de gestion de certificados de actividades para el departamento de Concierge.")
         st.markdown("---")
-        
+
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Desarrollado por</p>", unsafe_allow_html=True)
@@ -466,10 +675,10 @@ elif page == "⚙️ Configuracion":
         with col4:
             st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Ubicacion</p>", unsafe_allow_html=True)
             st.markdown("<p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:600; color:#ccc;'>Punta Cacique, Costa Rica 🇨🇷</p>", unsafe_allow_html=True)
-    
+
     st.markdown("---")
     st.caption("v1.0 | Activity Certificates DB |")
-    
+
     st.subheader("🔌 Estado de Conexion")
     try:
         test = supabase.table("certificates").select("count", count="exact").limit(1).execute()
@@ -477,4 +686,5 @@ elif page == "⚙️ Configuracion":
         st.info("Tabla: certificates | Proyecto: Activity Certificates | Waldorf Astoria.")
     except Exception as e:
         st.error(f"❌ Error de conexion: {e}")
+
 st.sidebar.markdown("---")
