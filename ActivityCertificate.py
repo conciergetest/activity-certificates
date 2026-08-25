@@ -2,7 +2,7 @@ import streamlit as st
 from supabase import create_client, Client
 import pandas as pd
 from datetime import datetime, date
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from reportlab.lib.colors import black
@@ -38,131 +38,160 @@ st.markdown('''
 </style>
 ''', unsafe_allow_html=True)
 
-# ── FUNCION PARA GENERAR PDF ──
+# ── FUNCION PARA GENERAR PDF EN HORIZONTAL ──
 def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
+    c = canvas.Canvas(buffer, pagesize=landscape(letter))
+    width, height = landscape(letter)  # width=11", height=8.5"
+
+    # Margen general
+    left_m = 0.6 * inch
+    right_m = width - 0.6 * inch
 
     # --- HEADER ---
+    # Logo Waldorf Astoria (derecha)
     try:
-        c.drawImage(logo_path, width - 2.2*inch, height - 1.1*inch, 
-                   width=1.6*inch, height=0.7*inch, preserveAspectRatio=True, mask="auto")
+        c.drawImage(logo_path, width - 2.0*inch, height - 1.0*inch, 
+                   width=1.4*inch, height=0.6*inch, preserveAspectRatio=True, mask="auto")
     except Exception:
         pass
 
-    c.setFont("Helvetica-Bold", 26)
-    c.drawString(0.5*inch, height - 0.85*inch, "ACTIVITY")
-    c.drawString(0.5*inch, height - 1.25*inch, "CERTIFICATE")
+    # Titulo (izquierda)
+    c.setFont("Helvetica-Bold", 28)
+    c.drawString(left_m, height - 0.75*inch, "ACTIVITY")
+    c.drawString(left_m, height - 1.15*inch, "CERTIFICATE")
 
-    c.setFont("Helvetica", 8)
-    c.drawString(width - 2.2*inch, height - 1.35*inch, "WALDORF ASTORIA")
-    c.drawString(width - 2.2*inch, height - 1.5*inch, "COSTA RICA • PUNTA CACIQUE")
+    # Subtitulo hotel (debajo del logo)
+    c.setFont("Helvetica", 9)
+    c.drawString(width - 2.0*inch, height - 1.25*inch, "WALDORF ASTORIA")
+    c.drawString(width - 2.0*inch, height - 1.4*inch, "COSTA RICA • PUNTA CACIQUE")
 
     # --- LINEA 1: Concierge ---
-    y = height - 1.9*inch
-    c.setFont("Helvetica", 10)
-    c.drawString(0.5*inch, y, "Concierge")
-    c.line(1.4*inch, y - 0.05*inch, 5.8*inch, y - 0.05*inch)
+    y = height - 1.85*inch
+    c.setFont("Helvetica", 11)
+    c.drawString(left_m, y, "Concierge")
+    c.line(left_m + 1.1*inch, y - 0.05*inch, 6.5*inch, y - 0.05*inch)
     if cert_data.get("concierge"):
-        c.drawString(1.4*inch, y + 0.05*inch, str(cert_data.get("concierge", "")).upper())
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(left_m + 1.15*inch, y + 0.02*inch, str(cert_data.get("concierge", "")).upper())
 
     # --- LINEA 2: Name | Room | Confirmed with | On ---
     y = height - 2.35*inch
-    c.drawString(0.5*inch, y, "Name")
-    c.line(1.0*inch, y - 0.05*inch, 3.6*inch, y - 0.05*inch)
+    c.setFont("Helvetica", 11)
+
+    c.drawString(left_m, y, "Name")
+    c.line(left_m + 0.7*inch, y - 0.05*inch, 4.2*inch, y - 0.05*inch)
     if cert_data.get("guest_name"):
-        c.drawString(1.0*inch, y + 0.05*inch, str(cert_data.get("guest_name", "")).upper())
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(left_m + 0.75*inch, y + 0.02*inch, str(cert_data.get("guest_name", "")).upper())
+    c.setFont("Helvetica", 11)
 
-    c.drawString(3.75*inch, y, "Room")
-    c.line(4.2*inch, y - 0.05*inch, 5.0*inch, y - 0.05*inch)
+    c.drawString(4.4*inch, y, "Room")
+    c.line(4.85*inch, y - 0.05*inch, 5.8*inch, y - 0.05*inch)
 
-    c.drawString(5.15*inch, y, "Confirmed with")
-    c.line(6.3*inch, y - 0.05*inch, 7.4*inch, y - 0.05*inch)
+    c.drawString(6.0*inch, y, "Confirmed with")
+    c.line(7.3*inch, y - 0.05*inch, 8.8*inch, y - 0.05*inch)
 
-    c.drawString(7.55*inch, y, "On")
-    c.line(7.9*inch, y - 0.05*inch, 8.3*inch, y - 0.05*inch)
+    c.drawString(9.0*inch, y, "On")
+    c.line(9.4*inch, y - 0.05*inch, 10.0*inch, y - 0.05*inch)
     if cert_data.get("guest_arrival_date"):
-        c.drawString(7.9*inch, y + 0.05*inch, str(cert_data.get("guest_arrival_date", "")))
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(9.45*inch, y + 0.02*inch, str(cert_data.get("guest_arrival_date", "")))
+    c.setFont("Helvetica", 11)
 
     # --- LINEA 3: Vendor | Event ---
-    y = height - 2.8*inch
-    c.drawString(0.5*inch, y, "Vendor")
-    c.line(1.0*inch, y - 0.05*inch, 3.6*inch, y - 0.05*inch)
+    y = height - 2.85*inch
+    c.drawString(left_m, y, "Vendor")
+    c.line(left_m + 0.7*inch, y - 0.05*inch, 4.2*inch, y - 0.05*inch)
     if cert_data.get("provider"):
-        c.drawString(1.0*inch, y + 0.05*inch, str(cert_data.get("provider", "")).upper())
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(left_m + 0.75*inch, y + 0.02*inch, str(cert_data.get("provider", "")).upper())
+    c.setFont("Helvetica", 11)
 
-    c.drawString(3.75*inch, y, "Event")
-    c.line(4.2*inch, y - 0.05*inch, 8.3*inch, y - 0.05*inch)
+    c.drawString(4.4*inch, y, "Event")
+    c.line(4.85*inch, y - 0.05*inch, 10.0*inch, y - 0.05*inch)
 
     # --- LINEA 4: Pickup/Meet | Time | Day | Date ---
-    y = height - 3.25*inch
-    c.rect(0.5*inch, y - 0.12*inch, 0.14*inch, 0.14*inch)
-    c.drawString(0.7*inch, y, "Pickup at Porte cochere")
+    y = height - 3.35*inch
+    # Checkboxes
+    c.rect(left_m, y - 0.12*inch, 0.15*inch, 0.15*inch)
+    c.drawString(left_m + 0.22*inch, y, "Pickup at Porte cochere")
 
-    c.rect(0.5*inch, y - 0.42*inch, 0.14*inch, 0.14*inch)
-    c.drawString(0.7*inch, y - 0.3*inch, "Meet at")
-    c.line(1.3*inch, y - 0.35*inch, 3.6*inch, y - 0.35*inch)
+    c.rect(left_m, y - 0.45*inch, 0.15*inch, 0.15*inch)
+    c.drawString(left_m + 0.22*inch, y - 0.33*inch, "Meet at")
+    c.line(left_m + 0.9*inch, y - 0.38*inch, 4.2*inch, y - 0.38*inch)
 
-    c.drawString(3.75*inch, y, "Time")
-    c.line(4.2*inch, y - 0.05*inch, 5.2*inch, y - 0.05*inch)
+    c.drawString(4.4*inch, y, "Time")
+    c.line(4.85*inch, y - 0.05*inch, 5.8*inch, y - 0.05*inch)
 
-    c.drawString(5.35*inch, y, "Day")
-    c.line(5.75*inch, y - 0.05*inch, 7.3*inch, y - 0.05*inch)
+    c.drawString(6.0*inch, y, "Day")
+    c.line(6.4*inch, y - 0.05*inch, 8.0*inch, y - 0.05*inch)
     activity_date = cert_data.get("activity_date", "")
     if activity_date:
         try:
             day_name = datetime.strptime(str(activity_date), "%Y-%m-%d").strftime("%A").upper()
-            c.drawString(5.75*inch, y + 0.05*inch, day_name)
+            c.setFont("Helvetica-Bold", 11)
+            c.drawString(6.45*inch, y + 0.02*inch, day_name)
         except Exception:
             pass
+    c.setFont("Helvetica", 11)
 
-    c.drawString(7.45*inch, y, "Date")
-    c.line(7.85*inch, y - 0.05*inch, 8.3*inch, y - 0.05*inch)
+    c.drawString(8.2*inch, y, "Date")
+    c.line(8.6*inch, y - 0.05*inch, 10.0*inch, y - 0.05*inch)
     if activity_date:
-        c.drawString(7.85*inch, y + 0.05*inch, str(activity_date))
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(8.65*inch, y + 0.02*inch, str(activity_date))
+    c.setFont("Helvetica", 11)
 
     # --- NOTES ---
-    y = height - 3.85*inch
-    c.drawString(0.5*inch, y, "Notes")
-    c.line(1.0*inch, y - 0.05*inch, 8.3*inch, y - 0.05*inch)
-    c.line(1.0*inch, y - 0.35*inch, 8.3*inch, y - 0.35*inch)
-    c.line(1.0*inch, y - 0.65*inch, 8.3*inch, y - 0.65*inch)
-    c.line(1.0*inch, y - 0.95*inch, 8.3*inch, y - 0.95*inch)
+    y = height - 4.0*inch
+    c.drawString(left_m, y, "Notes")
+    c.line(left_m + 0.7*inch, y - 0.05*inch, 10.0*inch, y - 0.05*inch)
+    # Lineas adicionales para notas
+    c.line(left_m + 0.7*inch, y - 0.38*inch, 10.0*inch, y - 0.38*inch)
+    c.line(left_m + 0.7*inch, y - 0.71*inch, 10.0*inch, y - 0.71*inch)
+    c.line(left_m + 0.7*inch, y - 1.04*inch, 10.0*inch, y - 1.04*inch)
     notes = cert_data.get("notes", "")
     if notes:
-        text_obj = c.beginText(1.05*inch, y - 0.25*inch)
-        text_obj.setFont("Helvetica", 9)
+        text_obj = c.beginText(left_m + 0.75*inch, y - 0.28*inch)
+        text_obj.setFont("Helvetica", 10)
         for line in str(notes).split("\n")[:4]:
             text_obj.textLine(line)
         c.drawText(text_obj)
 
-    # --- CANCELLATION FEE (izquierda) ---
-    y = height - 5.3*inch
-    c.setFont("Helvetica", 9)
-    c.drawString(0.5*inch, y, "A 100% cancellation fee is applicable if")
-    c.drawString(0.5*inch, y - 0.18*inch, "cancelation within 48 hours of confirmed activity")
+    # --- CANCELLATION FEE (izquierda, parte inferior) ---
+    y = height - 5.6*inch
+    c.setFont("Helvetica", 10)
+    c.drawString(left_m, y, "A 100% cancellation fee is applicable if")
+    c.drawString(left_m, y - 0.2*inch, "cancelation within 48 hours of confirmed activity")
 
-    c.line(0.5*inch, y - 0.75*inch, 3.8*inch, y - 0.75*inch)
-    c.drawCentredString(2.15*inch, y - 0.95*inch, "Guest's signature")
+    # Guest signature line
+    c.line(left_m, y - 0.85*inch, 4.0*inch, y - 0.85*inch)
+    c.setFont("Helvetica", 10)
+    c.drawCentredString(2.3*inch, y - 1.05*inch, "Guest's signature")
 
-    c.rect(0.5*inch, y - 1.35*inch, 0.14*inch, 0.14*inch)
+    # Waiver ok / Logged checkboxes
+    c.rect(left_m, y - 1.5*inch, 0.15*inch, 0.15*inch)
     if cert_data.get("signed"):
-        c.drawString(0.53*inch, y - 1.32*inch, "X")
-    c.drawString(0.7*inch, y - 1.25*inch, "Waiver ok")
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(left_m + 0.03*inch, y - 1.46*inch, "X")
+    c.setFont("Helvetica", 10)
+    c.drawString(left_m + 0.22*inch, y - 1.38*inch, "Waiver ok")
 
-    c.rect(2.0*inch, y - 1.35*inch, 0.14*inch, 0.14*inch)
+    c.rect(2.2*inch, y - 1.5*inch, 0.15*inch, 0.15*inch)
     if cert_data.get("cargado"):
-        c.drawString(2.03*inch, y - 1.32*inch, "X")
-    c.drawString(2.2*inch, y - 1.25*inch, "Logged")
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(2.23*inch, y - 1.46*inch, "X")
+    c.setFont("Helvetica", 10)
+    c.drawString(2.42*inch, y - 1.38*inch, "Logged")
 
-    # --- TABLA DERECHA ---
-    table_x = 4.5*inch
-    table_top = height - 5.0*inch
-    row_h = 0.32*inch
-    col1_w = 1.4*inch
-    col2_w = 1.0*inch
-    col3_w = 1.0*inch
+    # --- TABLA DERECHA (Adults, Children, Totals) ---
+    table_x = 5.0*inch
+    table_top = height - 5.3*inch
+    row_h = 0.38*inch
+    col1_w = 1.8*inch
+    col2_w = 1.4*inch
+    col3_w = 1.4*inch
     total_w = col1_w + col2_w + col3_w
 
     rows = [
@@ -177,26 +206,34 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
 
     for i, (col1, col2, col3) in enumerate(rows):
         y_pos = table_top - (i + 1) * row_h
+        # Horizontal line
         c.line(table_x, y_pos, table_x + total_w, y_pos)
-        c.setFont("Helvetica", 9)
+        # Text
+        c.setFont("Helvetica", 10)
         if col1:
-            c.drawString(table_x + 0.08*inch, y_pos + 0.1*inch, col1)
+            c.drawString(table_x + 0.1*inch, y_pos + 0.12*inch, col1)
         if col2:
-            c.drawString(table_x + col1_w + 0.08*inch, y_pos + 0.1*inch, col2)
+            c.drawString(table_x + col1_w + 0.1*inch, y_pos + 0.12*inch, col2)
         if col3:
-            c.drawString(table_x + col1_w + col2_w + 0.08*inch, y_pos + 0.1*inch, col3)
+            c.drawString(table_x + col1_w + col2_w + 0.1*inch, y_pos + 0.12*inch, col3)
+        # Fill Total amount
         if col2 == "Total" and cert_data.get("total_amount") is not None:
             total = float(cert_data.get("total_amount", 0))
-            c.drawString(table_x + col1_w + col2_w + 0.08*inch, y_pos + 0.1*inch, f"${total:,.2f}")
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(table_x + col1_w + col2_w + 0.1*inch, y_pos + 0.12*inch, f"${total:,.2f}")
+            c.setFont("Helvetica", 10)
 
+    # Top border
     c.line(table_x, table_top, table_x + total_w, table_top)
+    # Vertical lines
     c.line(table_x, table_top, table_x, table_top - len(rows)*row_h)
     c.line(table_x + col1_w, table_top, table_x + col1_w, table_top - len(rows)*row_h)
     c.line(table_x + col1_w + col2_w, table_top, table_x + col1_w + col2_w, table_top - len(rows)*row_h)
     c.line(table_x + total_w, table_top, table_x + total_w, table_top - len(rows)*row_h)
 
-    c.setFont("Helvetica", 7)
-    c.drawString(0.5*inch, 0.4*inch, f"Ref: {cert_data.get('ticket_number', '')}")
+    # --- TICKET NUMBER (esquina inferior izquierda) ---
+    c.setFont("Helvetica", 8)
+    c.drawString(left_m, 0.35*inch, f"Ref: {cert_data.get('ticket_number', '')}")
 
     c.save()
     buffer.seek(0)
@@ -387,7 +424,6 @@ elif page == "➕ Nuevo Certificate":
     st.markdown("<div class='main-header'>Nuevo Activity Certificate</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Completa el formulario para registrar un nuevo certificate</div>", unsafe_allow_html=True)
 
-    # Inicializar session_state
     if "last_saved_cert" not in st.session_state:
         st.session_state.last_saved_cert = None
     if "save_success" not in st.session_state:
@@ -439,7 +475,7 @@ elif page == "➕ Nuevo Certificate":
                     st.session_state.last_saved_cert = None
                     st.error(f"❌ Error: {response}")
 
-    # MOSTRAR BOTON DE DESCARGA FUERA DEL FORM
+    # BOTON DE DESCARGA FUERA DEL FORM
     if st.session_state.save_success and st.session_state.last_saved_cert:
         st.markdown("---")
         st.subheader("📄 Descargar Certificate en PDF")
