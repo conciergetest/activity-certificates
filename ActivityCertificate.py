@@ -44,24 +44,20 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     c = canvas.Canvas(buffer, pagesize=landscape(letter))
     width, height = landscape(letter)  # width=11", height=8.5"
 
-    # Margen general
     left_m = 0.6 * inch
     right_m = width - 0.6 * inch
 
     # --- HEADER ---
-    # Logo Waldorf Astoria (derecha)
     try:
         c.drawImage(logo_path, width - 2.0*inch, height - 1.0*inch, 
                    width=1.4*inch, height=0.6*inch, preserveAspectRatio=True, mask="auto")
     except Exception:
         pass
 
-    # Titulo (izquierda)
     c.setFont("Helvetica-Bold", 28)
     c.drawString(left_m, height - 0.75*inch, "ACTIVITY")
     c.drawString(left_m, height - 1.15*inch, "CERTIFICATE")
 
-    # Subtitulo hotel (debajo del logo)
     c.setFont("Helvetica", 9)
     c.drawString(width - 2.0*inch, height - 1.25*inch, "WALDORF ASTORIA")
     c.drawString(width - 2.0*inch, height - 1.4*inch, "COSTA RICA • PUNTA CACIQUE")
@@ -91,6 +87,11 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
 
     c.drawString(6.0*inch, y, "Confirmed with")
     c.line(7.3*inch, y - 0.05*inch, 8.8*inch, y - 0.05*inch)
+    # 1- Confirmed with = Provider
+    if cert_data.get("provider"):
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(7.35*inch, y + 0.02*inch, str(cert_data.get("provider", "")).upper())
+    c.setFont("Helvetica", 11)
 
     c.drawString(9.0*inch, y, "On")
     c.line(9.4*inch, y - 0.05*inch, 10.0*inch, y - 0.05*inch)
@@ -110,6 +111,11 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
 
     c.drawString(4.4*inch, y, "Event")
     c.line(4.85*inch, y - 0.05*inch, 10.0*inch, y - 0.05*inch)
+    # 2- Event = Notes
+    if cert_data.get("notes"):
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(4.9*inch, y + 0.02*inch, str(cert_data.get("notes", "")).upper())
+    c.setFont("Helvetica", 11)
 
     # --- LINEA 4: Pickup/Meet | Time | Day | Date ---
     y = height - 3.35*inch
@@ -120,9 +126,19 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     c.rect(left_m, y - 0.45*inch, 0.15*inch, 0.15*inch)
     c.drawString(left_m + 0.22*inch, y - 0.33*inch, "Meet at")
     c.line(left_m + 0.9*inch, y - 0.38*inch, 4.2*inch, y - 0.38*inch)
+    # 3- Meet at = meeting_point
+    if cert_data.get("meeting_point"):
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(left_m + 0.95*inch, y - 0.3*inch, str(cert_data.get("meeting_point", "")).upper())
+    c.setFont("Helvetica", 11)
 
     c.drawString(4.4*inch, y, "Time")
     c.line(4.85*inch, y - 0.05*inch, 5.8*inch, y - 0.05*inch)
+    # 4- Time = activity_time
+    if cert_data.get("activity_time"):
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(4.9*inch, y + 0.02*inch, str(cert_data.get("activity_time", "")).upper())
+    c.setFont("Helvetica", 11)
 
     c.drawString(6.0*inch, y, "Day")
     c.line(6.4*inch, y - 0.05*inch, 8.0*inch, y - 0.05*inch)
@@ -147,7 +163,6 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     y = height - 4.0*inch
     c.drawString(left_m, y, "Notes")
     c.line(left_m + 0.7*inch, y - 0.05*inch, 10.0*inch, y - 0.05*inch)
-    # Lineas adicionales para notas
     c.line(left_m + 0.7*inch, y - 0.38*inch, 10.0*inch, y - 0.38*inch)
     c.line(left_m + 0.7*inch, y - 0.71*inch, 10.0*inch, y - 0.71*inch)
     c.line(left_m + 0.7*inch, y - 1.04*inch, 10.0*inch, y - 1.04*inch)
@@ -165,12 +180,10 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     c.drawString(left_m, y, "A 100% cancellation fee is applicable if")
     c.drawString(left_m, y - 0.2*inch, "cancelation within 48 hours of confirmed activity")
 
-    # Guest signature line
     c.line(left_m, y - 0.85*inch, 4.0*inch, y - 0.85*inch)
     c.setFont("Helvetica", 10)
     c.drawCentredString(2.3*inch, y - 1.05*inch, "Guest's signature")
 
-    # Waiver ok / Logged checkboxes
     c.rect(left_m, y - 1.5*inch, 0.15*inch, 0.15*inch)
     if cert_data.get("signed"):
         c.setFont("Helvetica-Bold", 12)
@@ -206,9 +219,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
 
     for i, (col1, col2, col3) in enumerate(rows):
         y_pos = table_top - (i + 1) * row_h
-        # Horizontal line
         c.line(table_x, y_pos, table_x + total_w, y_pos)
-        # Text
         c.setFont("Helvetica", 10)
         if col1:
             c.drawString(table_x + 0.1*inch, y_pos + 0.12*inch, col1)
@@ -216,22 +227,18 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
             c.drawString(table_x + col1_w + 0.1*inch, y_pos + 0.12*inch, col2)
         if col3:
             c.drawString(table_x + col1_w + col2_w + 0.1*inch, y_pos + 0.12*inch, col3)
-        # Fill Total amount
         if col2 == "Total" and cert_data.get("total_amount") is not None:
             total = float(cert_data.get("total_amount", 0))
             c.setFont("Helvetica-Bold", 10)
             c.drawString(table_x + col1_w + col2_w + 0.1*inch, y_pos + 0.12*inch, f"${total:,.2f}")
             c.setFont("Helvetica", 10)
 
-    # Top border
     c.line(table_x, table_top, table_x + total_w, table_top)
-    # Vertical lines
     c.line(table_x, table_top, table_x, table_top - len(rows)*row_h)
     c.line(table_x + col1_w, table_top, table_x + col1_w, table_top - len(rows)*row_h)
     c.line(table_x + col1_w + col2_w, table_top, table_x + col1_w + col2_w, table_top - len(rows)*row_h)
     c.line(table_x + total_w, table_top, table_x + total_w, table_top - len(rows)*row_h)
 
-    # --- TICKET NUMBER (esquina inferior izquierda) ---
     c.setFont("Helvetica", 8)
     c.drawString(left_m, 0.35*inch, f"Ref: {cert_data.get('ticket_number', '')}")
 
@@ -438,11 +445,15 @@ elif page == "➕ Nuevo Certificate":
             total_amount = st.number_input("💰 Total Amount *", min_value=0.0, step=0.01, format="%.2f")
             activity_date = st.date_input("📅 Activity Date *", value=date.today())
             provider = st.text_input("🏢 Provider", placeholder="Ej: LA CERNIA")
+            # NUEVO: Activity Time
+            activity_time = st.text_input("🕐 Activity Time", placeholder="Ej: 09:30 AM")
         with col2:
             concierge = st.text_input("🤵 Concierge", placeholder="Ej: MIGUEL")
             guest_arrival_date = st.date_input("🏨 Guest Arrival Date", value=None)
             signed = st.checkbox("✍️ Signed (Yes)")
             cargado = st.checkbox("📥 Cargado (Yes)")
+            # NUEVO: Meeting Point
+            meeting_point = st.text_input("📍 Meeting Point", placeholder="Ej: Lobby")
             notes = st.text_area("📝 Notas adicionales", placeholder="Cualquier informacion extra...")
         submitted = st.form_submit_button("💾 Guardar", use_container_width=True)
 
@@ -462,7 +473,9 @@ elif page == "➕ Nuevo Certificate":
                     "guest_arrival_date": guest_arrival_date.strftime("%Y-%m-%d") if guest_arrival_date else None,
                     "signed": signed,
                     "cargado": cargado,
-                    "notes": notes.strip()
+                    "notes": notes.strip(),
+                    "activity_time": activity_time.strip() if activity_time else None,
+                    "meeting_point": meeting_point.strip() if meeting_point else None
                 }
                 success, response = add_certificate(data)
                 if success:
@@ -552,11 +565,13 @@ elif page == "📋 Ver / Editar / Eliminar":
                         e_amount = st.number_input("Total Amount", min_value=0.0, step=0.01, format="%.2f", value=float(cert["total_amount"]))
                         e_activity = st.date_input("Activity Date", value=datetime.strptime(cert["activity_date"], "%Y-%m-%d").date())
                         e_provider = st.text_input("Provider", value=cert["provider"] if cert["provider"] else "")
+                        e_time = st.text_input("Activity Time", value=cert["activity_time"] if cert.get("activity_time") else "")
                     with ec2:
                         e_concierge = st.text_input("Concierge", value=cert["concierge"] if cert["concierge"] else "")
                         e_arrival = st.date_input("Guest Arrival Date", value=datetime.strptime(cert["guest_arrival_date"], "%Y-%m-%d").date() if cert["guest_arrival_date"] else None)
                         e_signed = st.checkbox("Signed", value=cert["signed"])
                         e_cargado = st.checkbox("Cargado", value=cert["cargado"])
+                        e_meeting = st.text_input("Meeting Point", value=cert["meeting_point"] if cert.get("meeting_point") else "")
                         e_notes = st.text_area("Notas", value=cert["notes"] if cert["notes"] else "")
                     ecol1, ecol2 = st.columns(2)
                     with ecol1:
@@ -574,7 +589,9 @@ elif page == "📋 Ver / Editar / Eliminar":
                             "guest_arrival_date": e_arrival.strftime("%Y-%m-%d") if e_arrival else None,
                             "signed": e_signed,
                             "cargado": e_cargado,
-                            "notes": e_notes.strip()
+                            "notes": e_notes.strip(),
+                            "activity_time": e_time.strip() if e_time else None,
+                            "meeting_point": e_meeting.strip() if e_meeting else None
                         }
                         success, response = update_certificate(edit_id, data)
                         if success:
@@ -625,7 +642,7 @@ elif page == "📤 Importar / Exportar":
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("📥 Importar desde CSV")
-        st.info("Formato esperado: guest_name, ticket_number, total_amount, activity_date, provider, concierge, guest_arrival_date, signed, cargado")
+        st.info("Formato esperado: guest_name, ticket_number, total_amount, activity_date, provider, concierge, guest_arrival_date, signed, cargado, activity_time, meeting_point")
         uploaded_file = st.file_uploader("Selecciona tu archivo CSV", type=["csv"])
         if uploaded_file is not None:
             try:
@@ -646,7 +663,9 @@ elif page == "📤 Importar / Exportar":
                                 "concierge": str(row.get("concierge", "")).strip(),
                                 "guest_arrival_date": str(row.get("guest_arrival_date", "")) if pd.notna(row.get("guest_arrival_date")) else None,
                                 "signed": bool(int(row.get("signed", 0))),
-                                "cargado": bool(int(row.get("cargado", 0)))
+                                "cargado": bool(int(row.get("cargado", 0))),
+                                "activity_time": str(row.get("activity_time", "")).strip() if pd.notna(row.get("activity_time")) else None,
+                                "meeting_point": str(row.get("meeting_point", "")).strip() if pd.notna(row.get("meeting_point")) else None
                             }
                             success, _ = add_certificate(data)
                             if success:
