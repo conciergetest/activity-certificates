@@ -44,7 +44,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     c = canvas.Canvas(buffer, pagesize=landscape(letter))
     width, height = landscape(letter)
     left_m = 0.6 * inch
-
+    
     # --- HEADER ---
     # C: Logo mas grande
     try:
@@ -52,17 +52,17 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
                    width=2.0*inch, height=0.9*inch, preserveAspectRatio=True, mask="auto")
     except Exception:
         pass
-
+    
     # B: Ref del ticket en AZUL INTENSO
-    c.setFillColor(HexColor("#0047AB"))  # Azul cobalto intenso
+    c.setFillColor(HexColor("#0047AB"))
     c.setFont("Helvetica-Bold", 22)
     c.drawString(width - 2.4*inch, height - 1.55*inch, f"Ref: {cert_data.get('ticket_number', '')}")
-    c.setFillColor(black)  # Reset a negro
-
+    c.setFillColor(black)
+    
     c.setFont("Helvetica-Bold", 28)
     c.drawString(left_m, height - 0.75*inch, "ACTIVITY")
     c.drawString(left_m, height - 1.15*inch, "CERTIFICATE")
-
+    
     # --- LINEA 1: Concierge ---
     y = height - 1.85*inch
     c.setFont("Helvetica", 11)
@@ -71,7 +71,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     if cert_data.get("concierge"):
         c.setFont("Helvetica-Bold", 11)
         c.drawString(left_m + 1.15*inch, y + 0.02*inch, str(cert_data.get("concierge", "")).upper())
-
+    
     # --- LINEA 2: Name | Room | Confirmed with | On ---
     y = height - 2.35*inch
     c.setFont("Helvetica", 11)
@@ -100,7 +100,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         c.setFont("Helvetica-Bold", 11)
         c.drawString(9.45*inch, y + 0.02*inch, str(cert_data.get("guest_arrival_date", "")))
     c.setFont("Helvetica", 11)
-
+    
     # --- LINEA 3: Vendor | Event ---
     y = height - 2.85*inch
     c.drawString(left_m, y, "Vendor")
@@ -115,7 +115,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         c.setFont("Helvetica-Bold", 11)
         c.drawString(4.9*inch, y + 0.02*inch, str(cert_data.get("notes", "")).upper())
     c.setFont("Helvetica", 11)
-
+    
     # --- LINEA 4: Pickup/Meet | Time | Day | Date ---
     y = height - 3.35*inch
     c.rect(left_m, y - 0.12*inch, 0.15*inch, 0.15*inch)
@@ -150,7 +150,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         c.setFont("Helvetica-Bold", 11)
         c.drawString(8.65*inch, y + 0.02*inch, str(activity_date))
     c.setFont("Helvetica", 11)
-
+    
     # --- NOTES ---
     y = height - 4.0*inch
     c.drawString(left_m, y, "Notes")
@@ -165,7 +165,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         for line in str(notes).split("\n")[:4]:
             text_obj.textLine(line)
         c.drawText(text_obj)
-
+    
     # --- CANCELLATION FEE (izquierda, parte inferior) ---
     y = height - 5.6*inch
     c.setFont("Helvetica", 10)
@@ -186,7 +186,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         c.drawString(2.23*inch, y - 1.46*inch, "X")
     c.setFont("Helvetica", 10)
     c.drawString(2.42*inch, y - 1.38*inch, "Logged")
-
+    
     # --- TABLA DERECHA (Adults, Children, Totals) ---
     table_x = 5.0*inch
     table_top = height - 5.3*inch
@@ -195,10 +195,10 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     col2_w = 1.4*inch
     col3_w = 1.4*inch
     total_w = col1_w + col2_w + col3_w
-
+    
     adults_val = str(cert_data.get("adults", "")) if cert_data.get("adults") else ""
     kids_val = str(cert_data.get("kids", "")) if cert_data.get("kids") else ""
-
+    
     rows = [
         ("Adults", adults_val, "Each"),
         ("Children", kids_val, "Each"),
@@ -208,7 +208,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         ("", "Total", ""),
         ("", "Total", "")
     ]
-
+    
     for i, (col1, col2, col3) in enumerate(rows):
         y_pos = table_top - (i + 1) * row_h
         c.line(table_x, y_pos, table_x + total_w, y_pos)
@@ -226,13 +226,13 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
             c.setFont("Helvetica-Bold", 10)
             c.drawString(table_x + col1_w + col2_w + 0.1*inch, y_pos + 0.12*inch, f"${total:,.2f}")
             c.setFont("Helvetica", 10)
-
+    
     c.line(table_x, table_top, table_x + total_w, table_top)
     c.line(table_x, table_top, table_x, table_top - len(rows)*row_h)
     c.line(table_x + col1_w, table_top, table_x + col1_w, table_top - len(rows)*row_h)
     c.line(table_x + col1_w + col2_w, table_top, table_x + col1_w + col2_w, table_top - len(rows)*row_h)
     c.line(table_x + total_w, table_top, table_x + total_w, table_top - len(rows)*row_h)
-
+    
     c.save()
     buffer.seek(0)
     return buffer
@@ -421,12 +421,12 @@ if page == "🏠 Dashboard":
 elif page == "➕ Nuevo Certificate":
     st.markdown("<div class='main-header'>Nuevo Activity Certificate</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Completa el formulario para registrar un nuevo certificate</div>", unsafe_allow_html=True)
-
+    
     if "last_saved_cert" not in st.session_state:
         st.session_state.last_saved_cert = None
     if "save_success" not in st.session_state:
         st.session_state.save_success = False
-
+    
     with st.form("new_certificate_form"):
         col1, col2 = st.columns(2)
         with col1:
@@ -448,7 +448,7 @@ elif page == "➕ Nuevo Certificate":
             notes = st.text_area("📝 Notas adicionales", placeholder="Cualquier informacion extra...")
             kids = st.number_input("👶 Kids", min_value=0, step=1, value=0)
         submitted = st.form_submit_button("💾 Guardar", use_container_width=True)
-
+        
         if submitted:
             if not guest_name or not ticket_number or total_amount <= 0:
                 st.error("❌ Por favor completa los campos obligatorios: Guest Name, Ticket Number y Total Amount.")
@@ -481,7 +481,7 @@ elif page == "➕ Nuevo Certificate":
                     st.session_state.save_success = False
                     st.session_state.last_saved_cert = None
                     st.error(f"❌ Error: {response}")
-
+    
     if st.session_state.save_success and st.session_state.last_saved_cert:
         st.success(f"✅ Certificate {st.session_state.last_saved_cert['ticket_number']} guardado correctamente!")
         st.balloons()
@@ -542,78 +542,78 @@ elif page == "📋 Ver / Editar / Eliminar":
             if cert is None:
                 st.warning("No se encontro un certificate con ese ID.")
             else:
-            st.markdown("---")
-            pdf_col1, pdf_col2 = st.columns(2)
-            with pdf_col1:
-                pdf_buffer = generate_certificate_pdf(cert, logo_path="LogoWaldorf.png")
-                st.download_button(
-                    label="📄 Descargar PDF de este Certificate",
-                    data=pdf_buffer,
-                    file_name=f"{cert['ticket_number']}_certificate.pdf",
-                    mime="application/pdf",
-                    use_container_width=True
-                )
-            with pdf_col2:
-                st.info(f"Ticket: **{cert['ticket_number']}** | Guest: **{cert['guest_name']}**")
-
-            with st.expander(f"Editando: {cert['ticket_number']} - {cert['guest_name']}", expanded=True):
-                with st.form("edit_form"):
-                    ec1, ec2 = st.columns(2)
-                    with ec1:
-                        e_guest = st.text_input("Guest Name", value=cert["guest_name"])
-                        e_ticket = st.text_input("Ticket Number", value=cert["ticket_number"])
-                        e_amount = st.number_input("Total Amount", min_value=0.0, step=0.01, format="%.2f", value=float(cert["total_amount"]))
-                        e_activity = st.date_input("Activity Date", value=datetime.strptime(cert["activity_date"], "%Y-%m-%d").date())
-                        e_provider = st.text_input("Provider", value=cert["provider"] if cert["provider"] else "")
-                        e_time = st.text_input("Activity Time", value=cert["activity_time"] if cert.get("activity_time") else "")
-                        e_adults = st.number_input("Adults", min_value=0, step=1, value=int(cert["adults"]) if cert.get("adults") else 0)
-                        e_room = st.text_input("Room", value=cert["room"] if cert.get("room") else "")
-                    with ec2:
-                        e_concierge = st.text_input("Concierge", value=cert["concierge"] if cert["concierge"] else "")
-                        e_arrival = st.date_input("Guest Arrival Date", value=datetime.strptime(cert["guest_arrival_date"], "%Y-%m-%d").date() if cert["guest_arrival_date"] else None)
-                        e_signed = st.checkbox("Signed", value=cert["signed"])
-                        e_cargado = st.checkbox("Cargado", value=cert["cargado"])
-                        e_meeting = st.text_input("Meeting Point", value=cert["meeting_point"] if cert.get("meeting_point") else "")
-                        e_notes = st.text_area("Notas", value=cert["notes"] if cert["notes"] else "")
-                        e_kids = st.number_input("Kids", min_value=0, step=1, value=int(cert["kids"]) if cert.get("kids") else 0)
-                    ecol1, ecol2 = st.columns(2)
-                    with ecol1:
-                        update_btn = st.form_submit_button("💾 Actualizar", use_container_width=True)
-                    with ecol2:
-                        delete_btn = st.form_submit_button("🗑️ Eliminar", use_container_width=True)
-                    if update_btn:
-                        data = {
-                            "guest_name": e_guest.upper().strip(),
-                            "ticket_number": e_ticket.upper().strip(),
-                            "total_amount": e_amount,
-                            "activity_date": e_activity.strftime("%Y-%m-%d"),
-                            "provider": e_provider.strip(),
-                            "concierge": e_concierge.strip(),
-                            "guest_arrival_date": e_arrival.strftime("%Y-%m-%d") if e_arrival else None,
-                            "signed": e_signed,
-                            "cargado": e_cargado,
-                            "notes": e_notes.strip(),
-                            "activity_time": e_time.strip() if e_time else None,
-                            "meeting_point": e_meeting.strip() if e_meeting else None,
-                            "adults": int(e_adults) if e_adults > 0 else None,
-                            "kids": int(e_kids) if e_kids > 0 else None,
-                            "room": e_room.strip().upper() if e_room else None
-                        }
-                        success, response = update_certificate(edit_id, data)
-                        if success:
-                            st.success("✅ Certificate actualizado correctamente!")
-                            st.session_state.edit_id_input = 0
-                            st.rerun()
-                        else:
-                            st.error(f"❌ Error: {response}")
-                    if delete_btn:
-                        success, response = delete_certificate(edit_id)
-                        if success:
-                            st.success("🗑️ Certificate eliminado correctamente!")
-                            st.session_state.edit_id_input = 0
-                            st.rerun()
-                        else:
-                            st.error(f"❌ Error: {response}")
+                st.markdown("---")
+                pdf_col1, pdf_col2 = st.columns(2)
+                with pdf_col1:
+                    pdf_buffer = generate_certificate_pdf(cert, logo_path="LogoWaldorf.png")
+                    st.download_button(
+                        label="📄 Descargar PDF de este Certificate",
+                        data=pdf_buffer,
+                        file_name=f"{cert['ticket_number']}_certificate.pdf",
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
+                with pdf_col2:
+                    st.info(f"Ticket: **{cert['ticket_number']}** | Guest: **{cert['guest_name']}**")
+                
+                with st.expander(f"Editando: {cert['ticket_number']} - {cert['guest_name']}", expanded=True):
+                    with st.form("edit_form"):
+                        ec1, ec2 = st.columns(2)
+                        with ec1:
+                            e_guest = st.text_input("Guest Name", value=cert["guest_name"])
+                            e_ticket = st.text_input("Ticket Number", value=cert["ticket_number"])
+                            e_amount = st.number_input("Total Amount", min_value=0.0, step=0.01, format="%.2f", value=float(cert["total_amount"]))
+                            e_activity = st.date_input("Activity Date", value=datetime.strptime(cert["activity_date"], "%Y-%m-%d").date())
+                            e_provider = st.text_input("Provider", value=cert["provider"] if cert["provider"] else "")
+                            e_time = st.text_input("Activity Time", value=cert["activity_time"] if cert.get("activity_time") else "")
+                            e_adults = st.number_input("Adults", min_value=0, step=1, value=int(cert["adults"]) if cert.get("adults") else 0)
+                            e_room = st.text_input("Room", value=cert["room"] if cert.get("room") else "")
+                        with ec2:
+                            e_concierge = st.text_input("Concierge", value=cert["concierge"] if cert["concierge"] else "")
+                            e_arrival = st.date_input("Guest Arrival Date", value=datetime.strptime(cert["guest_arrival_date"], "%Y-%m-%d").date() if cert["guest_arrival_date"] else None)
+                            e_signed = st.checkbox("Signed", value=cert["signed"])
+                            e_cargado = st.checkbox("Cargado", value=cert["cargado"])
+                            e_meeting = st.text_input("Meeting Point", value=cert["meeting_point"] if cert.get("meeting_point") else "")
+                            e_notes = st.text_area("Notas", value=cert["notes"] if cert["notes"] else "")
+                            e_kids = st.number_input("Kids", min_value=0, step=1, value=int(cert["kids"]) if cert.get("kids") else 0)
+                        ecol1, ecol2 = st.columns(2)
+                        with ecol1:
+                            update_btn = st.form_submit_button("💾 Actualizar", use_container_width=True)
+                        with ecol2:
+                            delete_btn = st.form_submit_button("🗑️ Eliminar", use_container_width=True)
+                        if update_btn:
+                            data = {
+                                "guest_name": e_guest.upper().strip(),
+                                "ticket_number": e_ticket.upper().strip(),
+                                "total_amount": e_amount,
+                                "activity_date": e_activity.strftime("%Y-%m-%d"),
+                                "provider": e_provider.strip(),
+                                "concierge": e_concierge.strip(),
+                                "guest_arrival_date": e_arrival.strftime("%Y-%m-%d") if e_arrival else None,
+                                "signed": e_signed,
+                                "cargado": e_cargado,
+                                "notes": e_notes.strip(),
+                                "activity_time": e_time.strip() if e_time else None,
+                                "meeting_point": e_meeting.strip() if e_meeting else None,
+                                "adults": int(e_adults) if e_adults > 0 else None,
+                                "kids": int(e_kids) if e_kids > 0 else None,
+                                "room": e_room.strip().upper() if e_room else None
+                            }
+                            success, response = update_certificate(edit_id, data)
+                            if success:
+                                st.success("✅ Certificate actualizado correctamente!")
+                                st.session_state.edit_id_input = 0
+                                st.rerun()
+                            else:
+                                st.error(f"❌ Error: {response}")
+                        if delete_btn:
+                            success, response = delete_certificate(edit_id)
+                            if success:
+                                st.success("🗑️ Certificate eliminado correctamente!")
+                                st.session_state.edit_id_input = 0
+                                st.rerun()
+                            else:
+                                st.error(f"❌ Error: {response}")
 
 # PAGINA: REPORTES POR MES
 elif page == "📊 Reportes por Mes":
@@ -722,12 +722,12 @@ elif page == "📤 Importar / Exportar":
 elif page == "⚙️ Configuracion":
     st.markdown("<div class='main-header'>Configuracion</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Informacion del sistema</div>", unsafe_allow_html=True)
-
+    
     with st.container():
         st.markdown("### 🏨 Activity Certificates DB")
         st.caption("Sistema de gestion de certificados de actividades para el departamento de Concierge.")
         st.markdown("---")
-
+        
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Desarrollado por</p>", unsafe_allow_html=True)
@@ -741,10 +741,10 @@ elif page == "⚙️ Configuracion":
         with col4:
             st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Ubicacion</p>", unsafe_allow_html=True)
             st.markdown("<p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:600; color:#ccc;'>Punta Cacique, Costa Rica 🇨🇷</p>", unsafe_allow_html=True)
-
+    
     st.markdown("---")
     st.caption("v1.0 | Activity Certificates DB |")
-
+    
     st.subheader("🔌 Estado de Conexion")
     try:
         test = supabase.table("certificates").select("count", count="exact").limit(1).execute()
@@ -752,5 +752,5 @@ elif page == "⚙️ Configuracion":
         st.info("Tabla: certificates | Proyecto: Activity Certificates | Waldorf Astoria.")
     except Exception as e:
         st.error(f"❌ Error de conexion: {e}")
-
+        
 st.sidebar.markdown("---")
