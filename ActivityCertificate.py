@@ -7,12 +7,7 @@ from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from reportlab.lib.colors import black, HexColor
 import io
-
-try:
-    from streamlit_autorefresh import st_autorefresh
-    _autorefresh_available = True
-except ImportError:
-    _autorefresh_available = False
+from streamlit.components.v1 import html
 
 # ── CONFIGURACION SUPABASE ──
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", "https://TU-PROYECTO.supabase.co")
@@ -357,20 +352,25 @@ if page == "🏠 Dashboard":
             st.image("FredWayneLOGO.jpeg", width=180)
         except Exception:
             pass
-        # Reloj en tiempo real
-        if _autorefresh_available:
-            st_autorefresh(interval=1000, key="clock_refresh")
-        now = datetime.now()
-        st.markdown(f"""
-        <div style="text-align:right; margin-top:8px;">
-            <div style="font-size:1.4rem; font-weight:700; color:#00BFFF; font-family:monospace;">
-                {now.strftime("%I:%M:%S %p")}
-            </div>
-            <div style="font-size:0.95rem; color:#888; margin-top:2px;">
-                {now.strftime("%A, %B %d, %Y")}
-            </div>
+        # Reloj en tiempo real con JavaScript (se actualiza sin recargar la pagina)
+        clock_html = """
+        <div id="live-clock" style="text-align:right; margin-top:8px; font-family:monospace;">
+            <div id="clock-time" style="font-size:1.6rem; font-weight:700; color:#00FFFF; text-shadow:0 0 8px #00FFFF;"></div>
+            <div id="clock-date" style="font-size:1.1rem; font-weight:700; color:#00FFFF; text-shadow:0 0 6px #00FFFF; margin-top:4px;"></div>
         </div>
-        """, unsafe_allow_html=True)
+        <script>
+            function updateClock() {
+                const now = new Date();
+                const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+                const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit' };
+                document.getElementById('clock-time').textContent = now.toLocaleTimeString('en-US', timeOptions);
+                document.getElementById('clock-date').textContent = now.toLocaleDateString('en-US', dateOptions);
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        </script>
+        """
+        html(clock_html, height=90)
 
     df = get_all_certificates()
 
