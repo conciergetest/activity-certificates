@@ -19,6 +19,9 @@ def get_supabase_client() -> Client:
 
 supabase = get_supabase_client()
 
+# ── CONSTANTES GLOBALES ──
+ADMIN_PASSWORD = st.secrets.get("ADMIN_PASSWORD", "waldorf2026")
+
 # ── CONFIGURACION DE LA PAGINA ──
 st.set_page_config(
     page_title="Activity Certificates DB",
@@ -833,9 +836,6 @@ elif page == "📤 Importar / Exportar":
 elif page == "🗑️ Limpiar por Mes":
     st.markdown("<div class='main-header'>Limpiar por Mes</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Descarga un backup y elimina registros antiguos por mes</div>", unsafe_allow_html=True)
-
-    # Password protection
-    ADMIN_PASSWORD = st.secrets.get("ADMIN_PASSWORD", "waldorf2026")
 
     if "cleanup_auth" not in st.session_state:
         st.session_state.cleanup_auth = False
