@@ -476,14 +476,15 @@ elif page == "➕ Nuevo Certificate":
                 if success:
                     st.session_state.save_success = True
                     st.session_state.last_saved_cert = data
-                    st.success(f"✅ Certificate {ticket_number} guardado correctamente!")
-                    st.balloons()
+                    st.rerun()
                 else:
                     st.session_state.save_success = False
                     st.session_state.last_saved_cert = None
                     st.error(f"❌ Error: {response}")
 
     if st.session_state.save_success and st.session_state.last_saved_cert:
+        st.success(f"✅ Certificate {st.session_state.last_saved_cert['ticket_number']} guardado correctamente!")
+        st.balloons()
         st.markdown("---")
         st.subheader("📄 Descargar Certificate en PDF")
         cert_data = st.session_state.last_saved_cert
@@ -495,6 +496,8 @@ elif page == "➕ Nuevo Certificate":
             mime="application/pdf",
             use_container_width=True
         )
+        st.session_state.save_success = False
+        st.session_state.last_saved_cert = None
 
 # PAGINA: VER / EDITAR / ELIMINAR
 elif page == "📋 Ver / Editar / Eliminar":
@@ -531,11 +534,14 @@ elif page == "📋 Ver / Editar / Eliminar":
         st.subheader("✏️ Editar o 🗑️ Eliminar Certificate")
         edit_col1, edit_col2 = st.columns([1, 3])
         with edit_col1:
-            edit_id = st.number_input("ID del Certificate", min_value=1, step=1)
-        cert = get_certificate_by_id(edit_id)
-        if cert is None:
-            st.warning("No se encontro un certificate con ese ID.")
+            edit_id = st.number_input("ID del Certificate", min_value=0, step=1, key="edit_id_input")
+        if edit_id == 0:
+            st.info("Ingresa un ID de certificate para editar o eliminar.")
         else:
+            cert = get_certificate_by_id(edit_id)
+            if cert is None:
+                st.warning("No se encontro un certificate con ese ID.")
+            else:
             st.markdown("---")
             pdf_col1, pdf_col2 = st.columns(2)
             with pdf_col1:
@@ -596,6 +602,7 @@ elif page == "📋 Ver / Editar / Eliminar":
                         success, response = update_certificate(edit_id, data)
                         if success:
                             st.success("✅ Certificate actualizado correctamente!")
+                            st.session_state.edit_id_input = 0
                             st.rerun()
                         else:
                             st.error(f"❌ Error: {response}")
@@ -603,6 +610,7 @@ elif page == "📋 Ver / Editar / Eliminar":
                         success, response = delete_certificate(edit_id)
                         if success:
                             st.success("🗑️ Certificate eliminado correctamente!")
+                            st.session_state.edit_id_input = 0
                             st.rerun()
                         else:
                             st.error(f"❌ Error: {response}")
