@@ -1,4 +1,3 @@
-
 import streamlit as st
 from supabase import create_client, Client
 import pandas as pd
@@ -477,6 +476,8 @@ if page == "🏠 Dashboard":
         st.subheader("📝 Registros del Mes")
         display_df = filtered.copy()
         display_df["total_amount"] = display_df["total_amount"].apply(lambda x: f"${x:,.2f}")
+        if "created_at" in display_df.columns:
+            display_df["created_at"] = pd.to_datetime(display_df["created_at"]).dt.strftime("%Y-%m-%d")
         st.dataframe(display_df, use_container_width=True, hide_index=True)
 
 # PAGINA: NUEVO CERTIFICATE
@@ -593,6 +594,8 @@ elif page == "📋 Ver / Editar / Eliminar":
         st.markdown(f"**Mostrando {len(filtered)} de {len(df)} registros**")
         display_df = filtered.copy()
         display_df["total_amount"] = display_df["total_amount"].apply(lambda x: f"${x:,.2f}")
+        if "created_at" in display_df.columns:
+            display_df["created_at"] = pd.to_datetime(display_df["created_at"]).dt.strftime("%Y-%m-%d")
         st.dataframe(display_df, use_container_width=True, hide_index=True)
         st.markdown("---")
         st.subheader("✏️ Editar o 🗑️ Eliminar Certificate")
