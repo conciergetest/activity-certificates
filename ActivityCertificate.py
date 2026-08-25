@@ -693,13 +693,29 @@ elif page == "📋 Ver / Editar / Eliminar":
                             else:
                                 st.error(f"❌ Error: {response}")
                         if delete_btn:
-                            success, response = delete_certificate(edit_id)
-                            if success:
-                                st.success("🗑️ Certificate eliminado correctamente!")
-                                st.session_state.edit_id_value = 0
-                                st.rerun()
-                            else:
-                                st.error(f"❌ Error: {response}")
+                            st.session_state.show_delete_confirm = True
+
+                        if st.session_state.get("show_delete_confirm", False):
+                            st.warning("🔒 Confirma la eliminacion ingresando la contrasena de administrador")
+                            del_pwd = st.text_input("Contrasena", type="password", key="delete_pwd")
+                            del_col1, del_col2 = st.columns(2)
+                            with del_col1:
+                                if st.button("✅ Confirmar Eliminacion", use_container_width=True, type="primary"):
+                                    if del_pwd == ADMIN_PASSWORD:
+                                        success, response = delete_certificate(edit_id)
+                                        if success:
+                                            st.success("🗑️ Certificate eliminado correctamente!")
+                                            st.session_state.edit_id_value = 0
+                                            st.session_state.show_delete_confirm = False
+                                            st.rerun()
+                                        else:
+                                            st.error(f"❌ Error: {response}")
+                                    else:
+                                        st.error("❌ Contrasena incorrecta.")
+                            with del_col2:
+                                if st.button("❌ Cancelar", use_container_width=True):
+                                    st.session_state.show_delete_confirm = False
+                                    st.rerun()
 
 # PAGINA: REPORTES POR MES
 elif page == "📊 Reportes por Mes":
