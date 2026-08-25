@@ -44,7 +44,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     c = canvas.Canvas(buffer, pagesize=landscape(letter))
     width, height = landscape(letter)
     left_m = 0.6 * inch
-    
+
     # --- HEADER ---
     # C: Logo mas grande
     try:
@@ -52,17 +52,17 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
                    width=2.0*inch, height=0.9*inch, preserveAspectRatio=True, mask="auto")
     except Exception:
         pass
-    
+
     # B: Ref del ticket en AZUL INTENSO
     c.setFillColor(HexColor("#0047AB"))
     c.setFont("Helvetica-Bold", 22)
     c.drawString(width - 2.4*inch, height - 1.55*inch, f"Ref: {cert_data.get('ticket_number', '')}")
     c.setFillColor(black)
-    
+
     c.setFont("Helvetica-Bold", 28)
     c.drawString(left_m, height - 0.75*inch, "ACTIVITY")
     c.drawString(left_m, height - 1.15*inch, "CERTIFICATE")
-    
+
     # --- LINEA 1: Concierge ---
     y = height - 1.85*inch
     c.setFont("Helvetica", 11)
@@ -71,7 +71,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     if cert_data.get("concierge"):
         c.setFont("Helvetica-Bold", 11)
         c.drawString(left_m + 1.15*inch, y + 0.02*inch, str(cert_data.get("concierge", "")).upper())
-    
+
     # --- LINEA 2: Name | Room | Confirmed with | On ---
     y = height - 2.35*inch
     c.setFont("Helvetica", 11)
@@ -100,7 +100,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         c.setFont("Helvetica-Bold", 11)
         c.drawString(9.45*inch, y + 0.02*inch, str(cert_data.get("guest_arrival_date", "")))
     c.setFont("Helvetica", 11)
-    
+
     # --- LINEA 3: Vendor | Event ---
     y = height - 2.85*inch
     c.drawString(left_m, y, "Vendor")
@@ -115,7 +115,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         c.setFont("Helvetica-Bold", 11)
         c.drawString(4.9*inch, y + 0.02*inch, str(cert_data.get("notes", "")).upper())
     c.setFont("Helvetica", 11)
-    
+
     # --- LINEA 4: Pickup/Meet | Time | Day | Date ---
     y = height - 3.35*inch
     c.rect(left_m, y - 0.12*inch, 0.15*inch, 0.15*inch)
@@ -150,7 +150,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         c.setFont("Helvetica-Bold", 11)
         c.drawString(8.65*inch, y + 0.02*inch, str(activity_date))
     c.setFont("Helvetica", 11)
-    
+
     # --- NOTES ---
     y = height - 4.0*inch
     c.drawString(left_m, y, "Notes")
@@ -165,7 +165,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         for line in str(notes).split("\n")[:4]:
             text_obj.textLine(line)
         c.drawText(text_obj)
-    
+
     # --- CANCELLATION FEE (izquierda, parte inferior) ---
     y = height - 5.6*inch
     c.setFont("Helvetica", 10)
@@ -186,7 +186,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         c.drawString(2.23*inch, y - 1.46*inch, "X")
     c.setFont("Helvetica", 10)
     c.drawString(2.42*inch, y - 1.38*inch, "Logged")
-    
+
     # --- TABLA DERECHA (Adults, Children, Totals) ---
     table_x = 5.0*inch
     table_top = height - 5.3*inch
@@ -195,10 +195,10 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     col2_w = 1.4*inch
     col3_w = 1.4*inch
     total_w = col1_w + col2_w + col3_w
-    
+
     adults_val = str(cert_data.get("adults", "")) if cert_data.get("adults") else ""
     kids_val = str(cert_data.get("kids", "")) if cert_data.get("kids") else ""
-    
+
     rows = [
         ("Adults", adults_val, "Each"),
         ("Children", kids_val, "Each"),
@@ -208,7 +208,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         ("", "Total", ""),
         ("", "Total", "")
     ]
-    
+
     for i, (col1, col2, col3) in enumerate(rows):
         y_pos = table_top - (i + 1) * row_h
         c.line(table_x, y_pos, table_x + total_w, y_pos)
@@ -226,13 +226,13 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
             c.setFont("Helvetica-Bold", 10)
             c.drawString(table_x + col1_w + col2_w + 0.1*inch, y_pos + 0.12*inch, f"${total:,.2f}")
             c.setFont("Helvetica", 10)
-    
+
     c.line(table_x, table_top, table_x + total_w, table_top)
     c.line(table_x, table_top, table_x, table_top - len(rows)*row_h)
     c.line(table_x + col1_w, table_top, table_x + col1_w, table_top - len(rows)*row_h)
     c.line(table_x + col1_w + col2_w, table_top, table_x + col1_w + col2_w, table_top - len(rows)*row_h)
     c.line(table_x + total_w, table_top, table_x + total_w, table_top - len(rows)*row_h)
-    
+
     c.save()
     buffer.seek(0)
     return buffer
@@ -421,12 +421,12 @@ if page == "🏠 Dashboard":
 elif page == "➕ Nuevo Certificate":
     st.markdown("<div class='main-header'>Nuevo Activity Certificate</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Completa el formulario para registrar un nuevo certificate</div>", unsafe_allow_html=True)
-    
+
     if "last_saved_cert" not in st.session_state:
         st.session_state.last_saved_cert = None
     if "save_success" not in st.session_state:
         st.session_state.save_success = False
-    
+
     with st.form("new_certificate_form"):
         col1, col2 = st.columns(2)
         with col1:
@@ -448,7 +448,7 @@ elif page == "➕ Nuevo Certificate":
             notes = st.text_area("📝 Notas adicionales", placeholder="Cualquier informacion extra...")
             kids = st.number_input("👶 Kids", min_value=0, step=1, value=0)
         submitted = st.form_submit_button("💾 Guardar", use_container_width=True)
-        
+
         if submitted:
             if not guest_name or not ticket_number or total_amount <= 0:
                 st.error("❌ Por favor completa los campos obligatorios: Guest Name, Ticket Number y Total Amount.")
@@ -481,7 +481,7 @@ elif page == "➕ Nuevo Certificate":
                     st.session_state.save_success = False
                     st.session_state.last_saved_cert = None
                     st.error(f"❌ Error: {response}")
-    
+
     if st.session_state.save_success and st.session_state.last_saved_cert:
         st.success(f"✅ Certificate {st.session_state.last_saved_cert['ticket_number']} guardado correctamente!")
         st.balloons()
@@ -533,8 +533,12 @@ elif page == "📋 Ver / Editar / Eliminar":
         st.markdown("---")
         st.subheader("✏️ Editar o 🗑️ Eliminar Certificate")
         edit_col1, edit_col2 = st.columns([1, 3])
+
+        # FIX: Use session_state variable instead of widget key to avoid StreamlitAPIException
+        if "edit_id_value" not in st.session_state:
+            st.session_state.edit_id_value = 0
         with edit_col1:
-            edit_id = st.number_input("ID del Certificate", min_value=0, step=1, key="edit_id_input")
+            edit_id = st.number_input("ID del Certificate", min_value=0, step=1, value=st.session_state.edit_id_value)
         if edit_id == 0:
             st.info("Ingresa un ID de certificate para editar o eliminar.")
         else:
@@ -555,7 +559,7 @@ elif page == "📋 Ver / Editar / Eliminar":
                     )
                 with pdf_col2:
                     st.info(f"Ticket: **{cert['ticket_number']}** | Guest: **{cert['guest_name']}**")
-                
+
                 with st.expander(f"Editando: {cert['ticket_number']} - {cert['guest_name']}", expanded=True):
                     with st.form("edit_form"):
                         ec1, ec2 = st.columns(2)
@@ -602,7 +606,7 @@ elif page == "📋 Ver / Editar / Eliminar":
                             success, response = update_certificate(edit_id, data)
                             if success:
                                 st.success("✅ Certificate actualizado correctamente!")
-                                st.session_state.edit_id_input = 0
+                                st.session_state.edit_id_value = 0
                                 st.rerun()
                             else:
                                 st.error(f"❌ Error: {response}")
@@ -610,7 +614,7 @@ elif page == "📋 Ver / Editar / Eliminar":
                             success, response = delete_certificate(edit_id)
                             if success:
                                 st.success("🗑️ Certificate eliminado correctamente!")
-                                st.session_state.edit_id_input = 0
+                                st.session_state.edit_id_value = 0
                                 st.rerun()
                             else:
                                 st.error(f"❌ Error: {response}")
@@ -722,12 +726,12 @@ elif page == "📤 Importar / Exportar":
 elif page == "⚙️ Configuracion":
     st.markdown("<div class='main-header'>Configuracion</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Informacion del sistema</div>", unsafe_allow_html=True)
-    
+
     with st.container():
         st.markdown("### 🏨 Activity Certificates DB")
         st.caption("Sistema de gestion de certificados de actividades para el departamento de Concierge.")
         st.markdown("---")
-        
+
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Desarrollado por</p>", unsafe_allow_html=True)
@@ -741,10 +745,10 @@ elif page == "⚙️ Configuracion":
         with col4:
             st.markdown("<p style='margin:0; font-size:0.75rem; color:#888; text-transform:uppercase;'>Ubicacion</p>", unsafe_allow_html=True)
             st.markdown("<p style='margin:4px 0 0 0; font-size:1.3rem; font-weight:600; color:#ccc;'>Punta Cacique, Costa Rica 🇨🇷</p>", unsafe_allow_html=True)
-    
+
     st.markdown("---")
     st.caption("v1.0 | Activity Certificates DB |")
-    
+
     st.subheader("🔌 Estado de Conexion")
     try:
         test = supabase.table("certificates").select("count", count="exact").limit(1).execute()
@@ -752,5 +756,5 @@ elif page == "⚙️ Configuracion":
         st.info("Tabla: certificates | Proyecto: Activity Certificates | Waldorf Astoria.")
     except Exception as e:
         st.error(f"❌ Error de conexion: {e}")
-        
+
 st.sidebar.markdown("---")
