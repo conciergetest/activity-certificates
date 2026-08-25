@@ -367,10 +367,6 @@ if page == "🏠 Dashboard":
         </script>
         """
         html(clock_html, height=90)
-        try:
-            st.image("FredWayneLOGO.jpeg", width=180)
-        except Exception:
-            pass
 
     df = get_all_certificates()
 
@@ -418,6 +414,10 @@ if page == "🏠 Dashboard":
         st.sidebar.markdown("### 📊 Estadisticas del Mes")
         st.sidebar.metric("Total Registros", len(filtered))
         st.sidebar.metric("Monto Total", f"${filtered['total_amount'].sum():,.2f}")
+        try:
+            st.sidebar.image("FredWayneLOGO.jpeg", width=220)
+        except Exception:
+            pass
 
         col1, col2, col3, col4 = st.columns(4)
         total_tickets = len(filtered)
