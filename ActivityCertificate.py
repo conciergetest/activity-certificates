@@ -1,3 +1,4 @@
+
 import streamlit as st
 from supabase import create_client, Client
 import pandas as pd
@@ -789,6 +790,30 @@ elif page == "📤 Importar / Exportar":
 elif page == "🗑️ Limpiar por Mes":
     st.markdown("<div class='main-header'>Limpiar por Mes</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Descarga un backup y elimina registros antiguos por mes</div>", unsafe_allow_html=True)
+
+    # Password protection
+    ADMIN_PASSWORD = st.secrets.get("ADMIN_PASSWORD", "waldorf2026")
+
+    if "cleanup_auth" not in st.session_state:
+        st.session_state.cleanup_auth = False
+
+    if not st.session_state.cleanup_auth:
+        st.warning("🔒 Esta pagina esta protegida. Ingresa la contrasena para continuar.")
+        with st.form("login_form"):
+            pwd = st.text_input("Contrasena", type="password", placeholder="Ingresa la contrasena de administrador")
+            login_btn = st.form_submit_button("🔓 Desbloquear", use_container_width=True)
+            if login_btn:
+                if pwd == ADMIN_PASSWORD:
+                    st.session_state.cleanup_auth = True
+                    st.rerun()
+                else:
+                    st.error("❌ Contrasena incorrecta.")
+        st.stop()
+    else:
+        st.success("🔓 Acceso concedido. Puedes gestionar los registros.")
+        if st.button("🔒 Cerrar sesion", use_container_width=True):
+            st.session_state.cleanup_auth = False
+            st.rerun()
 
     df_all = get_all_certificates()
     if df_all.empty:
