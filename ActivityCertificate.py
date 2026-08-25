@@ -641,6 +641,7 @@ elif page == "📋 Ver / Editar / Eliminar":
                     st.info(f"Ticket: **{cert['ticket_number']}** | Guest: **{cert['guest_name']}**")
 
                 with st.expander(f"Editando: {cert['ticket_number']} - {cert['guest_name']}", expanded=True):
+                    # Formulario de edicion
                     with st.form("edit_form"):
                         ec1, ec2 = st.columns(2)
                         with ec1:
@@ -661,11 +662,8 @@ elif page == "📋 Ver / Editar / Eliminar":
                             e_event = st.text_input("Event", value=cert["event"] if cert.get("event") else "")
                             e_notes = st.text_area("Notas / Detalles", value=cert["notes"] if cert["notes"] else "")
                             e_kids = st.number_input("Kids", min_value=0, step=1, value=int(cert["kids"]) if cert.get("kids") else 0)
-                        ecol1, ecol2 = st.columns(2)
-                        with ecol1:
-                            update_btn = st.form_submit_button("💾 Actualizar", use_container_width=True)
-                        with ecol2:
-                            delete_btn = st.form_submit_button("🗑️ Eliminar", use_container_width=True)
+                        update_btn = st.form_submit_button("💾 Actualizar", use_container_width=True)
+
                         if update_btn:
                             data = {
                                 "guest_name": e_guest.upper().strip(),
@@ -692,30 +690,37 @@ elif page == "📋 Ver / Editar / Eliminar":
                                 st.rerun()
                             else:
                                 st.error(f"❌ Error: {response}")
-                        if delete_btn:
-                            st.session_state.show_delete_confirm = True
 
-                        if st.session_state.get("show_delete_confirm", False):
-                            st.warning("🔒 Confirma la eliminacion ingresando la contrasena de administrador")
-                            del_pwd = st.text_input("Contrasena", type="password", key="delete_pwd")
-                            del_col1, del_col2 = st.columns(2)
-                            with del_col1:
-                                if st.button("✅ Confirmar Eliminacion", use_container_width=True, type="primary"):
-                                    if del_pwd == ADMIN_PASSWORD:
-                                        success, response = delete_certificate(edit_id)
-                                        if success:
-                                            st.success("🗑️ Certificate eliminado correctamente!")
-                                            st.session_state.edit_id_value = 0
-                                            st.session_state.show_delete_confirm = False
-                                            st.rerun()
-                                        else:
-                                            st.error(f"❌ Error: {response}")
+                    # Eliminacion FUERA del formulario
+                    st.markdown("---")
+                    if "show_delete_confirm" not in st.session_state:
+                        st.session_state.show_delete_confirm = False
+
+                    if not st.session_state.show_delete_confirm:
+                        if st.button("🗑️ Eliminar Certificate", use_container_width=True, type="secondary"):
+                            st.session_state.show_delete_confirm = True
+                            st.rerun()
+                    else:
+                        st.warning("🔒 Confirma la eliminacion ingresando la contrasena de administrador")
+                        del_pwd = st.text_input("Contrasena", type="password", key="delete_pwd")
+                        del_col1, del_col2 = st.columns(2)
+                        with del_col1:
+                            if st.button("✅ Confirmar Eliminacion", use_container_width=True, type="primary"):
+                                if del_pwd == ADMIN_PASSWORD:
+                                    success, response = delete_certificate(edit_id)
+                                    if success:
+                                        st.success("🗑️ Certificate eliminado correctamente!")
+                                        st.session_state.edit_id_value = 0
+                                        st.session_state.show_delete_confirm = False
+                                        st.rerun()
                                     else:
-                                        st.error("❌ Contrasena incorrecta.")
-                            with del_col2:
-                                if st.button("❌ Cancelar", use_container_width=True):
-                                    st.session_state.show_delete_confirm = False
-                                    st.rerun()
+                                        st.error(f"❌ Error: {response}")
+                                else:
+                                    st.error("❌ Contrasena incorrecta.")
+                        with del_col2:
+                            if st.button("❌ Cancelar", use_container_width=True):
+                                st.session_state.show_delete_confirm = False
+                                st.rerun()
 
 # PAGINA: REPORTES POR MES
 elif page == "📊 Reportes por Mes":
