@@ -52,6 +52,10 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         c.drawImage(logo_path, width - 2.0*inch, height - 1.0*inch, 
                    width=1.4*inch, height=0.6*inch, preserveAspectRatio=True, mask="auto")
     except Exception:
+    
+    # Ref del ticket grande y en negrita (donde estaba el texto del hotel)
+    c.setFont("Helvetica-Bold", 22)
+    c.drawString(width - 2.2*inch, height - 1.35*inch, f"Ref: {cert_data.get('ticket_number', '')}")
         pass
 
     c.setFont("Helvetica-Bold", 28)
@@ -59,8 +63,6 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     c.drawString(left_m, height - 1.15*inch, "CERTIFICATE")
 
     c.setFont("Helvetica", 9)
-    c.drawString(width - 2.0*inch, height - 1.25*inch, "WALDORF ASTORIA")
-    c.drawString(width - 2.0*inch, height - 1.4*inch, "COSTA RICA • PUNTA CACIQUE")
 
     # --- LINEA 1: Concierge ---
     y = height - 1.85*inch
@@ -240,7 +242,6 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     c.line(table_x + total_w, table_top, table_x + total_w, table_top - len(rows)*row_h)
 
     c.setFont("Helvetica", 8)
-    c.drawString(left_m, 0.35*inch, f"Ref: {cert_data.get('ticket_number', '')}")
 
     c.save()
     buffer.seek(0)
