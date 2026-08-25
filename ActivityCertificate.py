@@ -8,6 +8,12 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.colors import black, HexColor
 import io
 
+try:
+    from streamlit_autorefresh import st_autorefresh
+    _autorefresh_available = True
+except ImportError:
+    _autorefresh_available = False
+
 # ── CONFIGURACION SUPABASE ──
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", "https://TU-PROYECTO.supabase.co")
 SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", "TU-ANON-KEY-AQUI")
@@ -351,6 +357,20 @@ if page == "🏠 Dashboard":
             st.image("FredWayneLOGO.jpeg", width=180)
         except Exception:
             pass
+        # Reloj en tiempo real
+        if _autorefresh_available:
+            st_autorefresh(interval=1000, key="clock_refresh")
+        now = datetime.now()
+        st.markdown(f"""
+        <div style="text-align:right; margin-top:8px;">
+            <div style="font-size:1.4rem; font-weight:700; color:#00BFFF; font-family:monospace;">
+                {now.strftime("%I:%M:%S %p")}
+            </div>
+            <div style="font-size:0.95rem; color:#888; margin-top:2px;">
+                {now.strftime("%A, %B %d, %Y")}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
     df = get_all_certificates()
 
