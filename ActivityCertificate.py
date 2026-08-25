@@ -45,19 +45,16 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     width, height = letter
 
     # --- HEADER ---
-    # Logo Waldorf Astoria (derecha)
     try:
         c.drawImage(logo_path, width - 2.2*inch, height - 1.1*inch, 
                    width=1.6*inch, height=0.7*inch, preserveAspectRatio=True, mask="auto")
     except Exception:
         pass
 
-    # Titulo (izquierda)
     c.setFont("Helvetica-Bold", 26)
     c.drawString(0.5*inch, height - 0.85*inch, "ACTIVITY")
     c.drawString(0.5*inch, height - 1.25*inch, "CERTIFICATE")
 
-    # Subtitulo hotel
     c.setFont("Helvetica", 8)
     c.drawString(width - 2.2*inch, height - 1.35*inch, "WALDORF ASTORIA")
     c.drawString(width - 2.2*inch, height - 1.5*inch, "COSTA RICA • PUNTA CACIQUE")
@@ -100,7 +97,6 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
 
     # --- LINEA 4: Pickup/Meet | Time | Day | Date ---
     y = height - 3.25*inch
-    # Checkboxes
     c.rect(0.5*inch, y - 0.12*inch, 0.14*inch, 0.14*inch)
     c.drawString(0.7*inch, y, "Pickup at Porte cochere")
 
@@ -130,7 +126,6 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     y = height - 3.85*inch
     c.drawString(0.5*inch, y, "Notes")
     c.line(1.0*inch, y - 0.05*inch, 8.3*inch, y - 0.05*inch)
-    # Area de notas (lineas adicionales)
     c.line(1.0*inch, y - 0.35*inch, 8.3*inch, y - 0.35*inch)
     c.line(1.0*inch, y - 0.65*inch, 8.3*inch, y - 0.65*inch)
     c.line(1.0*inch, y - 0.95*inch, 8.3*inch, y - 0.95*inch)
@@ -148,11 +143,9 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
     c.drawString(0.5*inch, y, "A 100% cancellation fee is applicable if")
     c.drawString(0.5*inch, y - 0.18*inch, "cancelation within 48 hours of confirmed activity")
 
-    # Guest signature
     c.line(0.5*inch, y - 0.75*inch, 3.8*inch, y - 0.75*inch)
     c.drawCentredString(2.15*inch, y - 0.95*inch, "Guest's signature")
 
-    # Waiver ok / Logged checkboxes
     c.rect(0.5*inch, y - 1.35*inch, 0.14*inch, 0.14*inch)
     if cert_data.get("signed"):
         c.drawString(0.53*inch, y - 1.32*inch, "X")
@@ -163,7 +156,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
         c.drawString(2.03*inch, y - 1.32*inch, "X")
     c.drawString(2.2*inch, y - 1.25*inch, "Logged")
 
-    # --- TABLA DERECHA (Adults, Children, Totals) ---
+    # --- TABLA DERECHA ---
     table_x = 4.5*inch
     table_top = height - 5.0*inch
     row_h = 0.32*inch
@@ -184,9 +177,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
 
     for i, (col1, col2, col3) in enumerate(rows):
         y_pos = table_top - (i + 1) * row_h
-        # Horizontal line
         c.line(table_x, y_pos, table_x + total_w, y_pos)
-        # Text
         c.setFont("Helvetica", 9)
         if col1:
             c.drawString(table_x + 0.08*inch, y_pos + 0.1*inch, col1)
@@ -194,20 +185,16 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
             c.drawString(table_x + col1_w + 0.08*inch, y_pos + 0.1*inch, col2)
         if col3:
             c.drawString(table_x + col1_w + col2_w + 0.08*inch, y_pos + 0.1*inch, col3)
-        # Fill Total amount
         if col2 == "Total" and cert_data.get("total_amount") is not None:
             total = float(cert_data.get("total_amount", 0))
             c.drawString(table_x + col1_w + col2_w + 0.08*inch, y_pos + 0.1*inch, f"${total:,.2f}")
 
-    # Top border
     c.line(table_x, table_top, table_x + total_w, table_top)
-    # Vertical lines
     c.line(table_x, table_top, table_x, table_top - len(rows)*row_h)
     c.line(table_x + col1_w, table_top, table_x + col1_w, table_top - len(rows)*row_h)
     c.line(table_x + col1_w + col2_w, table_top, table_x + col1_w + col2_w, table_top - len(rows)*row_h)
     c.line(table_x + total_w, table_top, table_x + total_w, table_top - len(rows)*row_h)
 
-    # --- TICKET NUMBER (esquina inferior izquierda, referencia) ---
     c.setFont("Helvetica", 7)
     c.drawString(0.5*inch, 0.4*inch, f"Ref: {cert_data.get('ticket_number', '')}")
 
@@ -400,6 +387,12 @@ elif page == "➕ Nuevo Certificate":
     st.markdown("<div class='main-header'>Nuevo Activity Certificate</div>", unsafe_allow_html=True)
     st.markdown("<div class='sub-header'>Completa el formulario para registrar un nuevo certificate</div>", unsafe_allow_html=True)
 
+    # Inicializar session_state
+    if "last_saved_cert" not in st.session_state:
+        st.session_state.last_saved_cert = None
+    if "save_success" not in st.session_state:
+        st.session_state.save_success = False
+
     with st.form("new_certificate_form"):
         col1, col2 = st.columns(2)
         with col1:
@@ -420,6 +413,8 @@ elif page == "➕ Nuevo Certificate":
         if submitted:
             if not guest_name or not ticket_number or total_amount <= 0:
                 st.error("❌ Por favor completa los campos obligatorios: Guest Name, Ticket Number y Total Amount.")
+                st.session_state.save_success = False
+                st.session_state.last_saved_cert = None
             else:
                 data = {
                     "guest_name": guest_name.upper().strip(),
@@ -435,22 +430,28 @@ elif page == "➕ Nuevo Certificate":
                 }
                 success, response = add_certificate(data)
                 if success:
+                    st.session_state.save_success = True
+                    st.session_state.last_saved_cert = data
                     st.success(f"✅ Certificate {ticket_number} guardado correctamente!")
                     st.balloons()
-
-                    # GENERAR PDF
-                    st.markdown("---")
-                    st.subheader("📄 Descargar Certificate en PDF")
-                    pdf_buffer = generate_certificate_pdf(data, logo_path="LogoWaldorf.png")
-                    st.download_button(
-                        label="⬇️ Descargar PDF",
-                        data=pdf_buffer,
-                        file_name=f"{ticket_number}_certificate.pdf",
-                        mime="application/pdf",
-                        use_container_width=True
-                    )
                 else:
+                    st.session_state.save_success = False
+                    st.session_state.last_saved_cert = None
                     st.error(f"❌ Error: {response}")
+
+    # MOSTRAR BOTON DE DESCARGA FUERA DEL FORM
+    if st.session_state.save_success and st.session_state.last_saved_cert:
+        st.markdown("---")
+        st.subheader("📄 Descargar Certificate en PDF")
+        cert_data = st.session_state.last_saved_cert
+        pdf_buffer = generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png")
+        st.download_button(
+            label="⬇️ Descargar PDF",
+            data=pdf_buffer,
+            file_name=f"{cert_data['ticket_number']}_certificate.pdf",
+            mime="application/pdf",
+            use_container_width=True
+        )
 
 # PAGINA: VER / EDITAR / ELIMINAR
 elif page == "📋 Ver / Editar / Eliminar":
@@ -492,7 +493,6 @@ elif page == "📋 Ver / Editar / Eliminar":
         if cert is None:
             st.warning("No se encontro un certificate con ese ID.")
         else:
-            # BOTON PARA DESCARGAR PDF DEL CERTIFICADO EXISTENTE
             st.markdown("---")
             pdf_col1, pdf_col2 = st.columns(2)
             with pdf_col1:
