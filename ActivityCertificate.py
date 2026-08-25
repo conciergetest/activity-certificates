@@ -361,6 +361,16 @@ def get_next_ticket_number():
     except Exception:
         return "VT000001"
 
+def get_next_id():
+    """Obtiene el siguiente ID disponible. Si la tabla esta vacia, empieza desde 1."""
+    try:
+        response = supabase.table("certificates").select("id").order("id", desc=True).limit(1).execute()
+        if response.data:
+            return response.data[0]["id"] + 1
+        return 1
+    except Exception:
+        return 1
+
 # ── SIDEBAR: NAVEGACION ──
 st.sidebar.markdown("## 📋 Menu")
 page = st.sidebar.radio("", [
@@ -519,6 +529,7 @@ elif page == "➕ Nuevo Certificate":
                 st.session_state.last_saved_cert = None
             else:
                 data = {
+                    "id": get_next_id(),
                     "guest_name": guest_name.upper().strip(),
                     "ticket_number": ticket_number.upper().strip(),
                     "total_amount": total_amount,
@@ -731,9 +742,11 @@ elif page == "📤 Importar / Exportar":
                 if st.button("📥 Importar", use_container_width=True):
                     imported = 0
                     skipped = 0
+                    next_import_id = get_next_id()
                     for _, row in import_df.iterrows():
                         try:
                             data = {
+                                "id": next_import_id,
                                 "guest_name": str(row.get("guest_name", "")).upper().strip(),
                                 "ticket_number": str(row.get("ticket_number", "")).upper().strip(),
                                 "total_amount": float(row.get("total_amount", 0)),
@@ -752,6 +765,7 @@ elif page == "📤 Importar / Exportar":
                             success, _ = add_certificate(data)
                             if success:
                                 imported += 1
+                                next_import_id += 1
                             else:
                                 skipped += 1
                         except Exception as e:
