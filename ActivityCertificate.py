@@ -33,12 +33,98 @@ st.set_page_config(
 # Estilos CSS
 st.markdown('''
 <style>
-    .main-header { font-size: 2.2rem; font-weight: 700; color: #0d47a1; margin-bottom: 0.5rem; }
-    .sub-header { font-size: 1.1rem; color: #666; margin-bottom: 2rem; }
+    /* ===== TEMA OSCURO GLOBAL ===== */
+    .stApp {
+        background-color: #0e1117 !important;
+        color: #fafafa !important;
+    }
+    .main .block-container {
+        background-color: #0e1117 !important;
+        color: #fafafa !important;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #161b22 !important;
+        color: #fafafa !important;
+    }
+    [data-testid="stSidebar"] .stMarkdown {
+        color: #fafafa !important;
+    }
+    /* Inputs y selectboxes */
+    .stTextInput input, .stNumberInput input, .stDateInput input, 
+    .stSelectbox div[data-baseweb="select"], .stTextArea textarea {
+        background-color: #21262d !important;
+        color: #fafafa !important;
+        border-color: #30363d !important;
+    }
+    .stTextInput label, .stNumberInput label, .stDateInput label,
+    .stSelectbox label, .stTextArea label, .stCheckbox label {
+        color: #c9d1d9 !important;
+    }
+    /* Dataframes / tablas */
+    .stDataFrame {
+        background-color: #161b22 !important;
+    }
+    .stDataFrame th {
+        background-color: #21262d !important;
+        color: #fafafa !important;
+    }
+    .stDataFrame td {
+        background-color: #0e1117 !important;
+        color: #fafafa !important;
+    }
+    /* Botones */
+    .stButton button {
+        background-color: #238636 !important;
+        color: #ffffff !important;
+        border: 1px solid #238636 !important;
+    }
+    /* Radio buttons del sidebar */
+    .stRadio label {
+        color: #c9d1d9 !important;
+    }
+    /* Expanders */
+    .streamlit-expanderHeader {
+        background-color: #21262d !important;
+        color: #fafafa !important;
+    }
+    .streamlit-expanderContent {
+        background-color: #161b22 !important;
+        color: #fafafa !important;
+    }
+    /* Metric containers */
+    [data-testid="stMetricValue"] {
+        color: #fafafa !important;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #8b949e !important;
+    }
+    /* Headers */
+    h1, h2, h3, h4, h5, h6 {
+        color: #58a6ff !important;
+    }
+    /* Info / Warning / Error boxes */
+    .stAlert {
+        border-radius: 8px;
+        background-color: #21262d !important;
+        color: #fafafa !important;
+    }
+    /* File uploader */
+    .stFileUploader {
+        background-color: #161b22 !important;
+    }
+    .stFileUploader label {
+        color: #c9d1d9 !important;
+    }
+    /* Date picker popup */
+    div[data-baseweb="popover"] {
+        background-color: #21262d !important;
+    }
+    /* ===== ESTILOS ORIGINALES ===== */
+    .main-header { font-size: 2.2rem; font-weight: 700; color: #58a6ff; margin-bottom: 0.5rem; }
+    .sub-header { font-size: 1.1rem; color: #8b949e; margin-bottom: 2rem; }
     .metric-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 12px; color: white; text-align: center; }
     .metric-value { font-size: 2rem; font-weight: 700; }
     .metric-label { font-size: 0.9rem; opacity: 0.9; }
-    .stAlert { border-radius: 8px; }
 </style>
 ''', unsafe_allow_html=True)
 
@@ -459,10 +545,7 @@ if page == "🏠 Dashboard":
         st.sidebar.markdown("### 📊 Estadisticas del Mes")
         st.sidebar.metric("Total Registros", len(filtered))
         st.sidebar.metric("Monto Total", f"${filtered['total_amount'].sum():,.2f}")
-        try:
-            st.sidebar.image("FredWayneLOGO.jpeg", width=220)
-        except Exception:
-            pass
+
 
         col1, col2, col3, col4 = st.columns(4)
         total_tickets = len(filtered)
@@ -942,5 +1025,12 @@ elif page == "⚙️ Configuracion":
         st.info("Tabla: certificates | Proyecto: Activity Certificates | Waldorf Astoria.")
     except Exception as e:
         st.error(f"❌ Error de conexion: {e}")
+
+
+# ── LOGO FRED WAYNE (SIDEBAR GLOBAL) ──
+try:
+    st.sidebar.image("FredWayneLOGO.jpeg", width=220)
+except Exception:
+    pass
 
 st.sidebar.markdown("---")
