@@ -151,7 +151,7 @@ def generate_certificate_pdf(cert_data, logo_path="LogoWaldorf.png"):
 
     c.setFont("Helvetica-Bold", 28)
     c.drawString(left_m, height - 0.75*inch, "ACTIVITY")
-    c.drawString(left_m, height - 1.15*inch, "CERTIFICATE")
+    c.drawString(left_m, height - 1.15*inch, "CERTIFICATE WAYNE")
 
     # --- LINEA 1: Concierge ---
     y = height - 1.85*inch
