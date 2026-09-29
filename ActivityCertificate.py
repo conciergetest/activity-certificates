@@ -586,27 +586,38 @@ elif page == "➕ Nuevo Certificate":
     if "save_success" not in st.session_state:
         st.session_state.save_success = False
 
+    # Valores por defecto para poder "limpiar" los campos solo cuando el guardado sea exitoso
+    _defaults = {
+        "f_guest_name": "", "f_total_amount": 0.0, "f_activity_date": date.today(),
+        "f_provider": "", "f_activity_time": "", "f_adults": 0, "f_room": "",
+        "f_concierge": "", "f_guest_arrival_date": None, "f_signed": False, "f_cargado": False,
+        "f_meeting_point": "", "f_event": "", "f_notes": "", "f_kids": 0,
+    }
+    for k, v in _defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+
     with st.form("new_certificate_form"):
         col1, col2 = st.columns(2)
         with col1:
-            guest_name = st.text_input("👤 Guest Name *", placeholder="Ej: TIFFANY LUI")
+            guest_name = st.text_input("👤 Guest Name *", placeholder="Ej: TIFFANY LUI", key="f_guest_name")
             next_ticket = get_next_ticket_number()
             ticket_number = st.text_input("🎫 Ticket Number", value=next_ticket, disabled=True)
-            total_amount = st.number_input("💰 Total Amount *", min_value=0.0, step=0.01, format="%.2f")
-            activity_date = st.date_input("📅 Activity Date *", value=date.today())
-            provider = st.text_input("🏢 Provider", placeholder="Ej: LA CERNIA")
-            activity_time = st.text_input("🕐 Activity Time", placeholder="Ej: 09:30 AM")
-            adults = st.number_input("👨 Adults", min_value=0, step=1, value=0)
-            room = st.text_input("🚪 Room", placeholder="Ej: 1205")
+            total_amount = st.number_input("💰 Total Amount *", min_value=0.0, step=0.01, format="%.2f", key="f_total_amount")
+            activity_date = st.date_input("📅 Activity Date *", key="f_activity_date")
+            provider = st.text_input("🏢 Provider", placeholder="Ej: LA CERNIA", key="f_provider")
+            activity_time = st.text_input("🕐 Activity Time", placeholder="Ej: 09:30 AM", key="f_activity_time")
+            adults = st.number_input("👨 Adults", min_value=0, step=1, key="f_adults")
+            room = st.text_input("🚪 Room", placeholder="Ej: 1205", key="f_room")
         with col2:
-            concierge = st.text_input("🤵 Concierge", placeholder="Ej: MIGUEL")
-            guest_arrival_date = st.date_input("🏨 Guest Arrival Date", value=None)
-            signed = st.checkbox("✍️ Signed (Yes)")
-            cargado = st.checkbox("📥 Cargado (Yes)")
-            meeting_point = st.text_input("📍 Meeting Point", placeholder="Ej: Lobby")
-            event = st.text_input("🎯 Event", placeholder="Ej: Half Day Catamaran")
-            notes = st.text_area("📝 Notas / Detalles", placeholder="Detalles adicionales de la actividad...")
-            kids = st.number_input("👶 Kids", min_value=0, step=1, value=0)
+            concierge = st.text_input("🤵 Concierge", placeholder="Ej: MIGUEL", key="f_concierge")
+            guest_arrival_date = st.date_input("🏨 Guest Arrival Date", key="f_guest_arrival_date")
+            signed = st.checkbox("✍️ Signed (Yes)", key="f_signed")
+            cargado = st.checkbox("📥 Cargado (Yes)", key="f_cargado")
+            meeting_point = st.text_input("📍 Meeting Point", placeholder="Ej: Lobby", key="f_meeting_point")
+            event = st.text_input("🎯 Event", placeholder="Ej: Half Day Catamaran", key="f_event")
+            notes = st.text_area("📝 Notas / Detalles", placeholder="Detalles adicionales de la actividad...", key="f_notes")
+            kids = st.number_input("👶 Kids", min_value=0, step=1, key="f_kids")
         submitted = st.form_submit_button("💾 Guardar", use_container_width=True)
 
         if submitted:
@@ -638,6 +649,9 @@ elif page == "➕ Nuevo Certificate":
                 if success:
                     st.session_state.save_success = True
                     st.session_state.last_saved_cert = data
+                    # Limpiar los campos del formulario solo porque el guardado fue exitoso
+                    for k in _defaults.keys():
+                        del st.session_state[k]
                     st.rerun()
                 else:
                     st.session_state.save_success = False
