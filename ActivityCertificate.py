@@ -714,11 +714,26 @@ elif page == "📋 Ver / Editar / Eliminar":
         st.subheader("✏️ Editar o 🗑️ Eliminar Certificate")
         edit_col1, edit_col2 = st.columns([1, 3])
 
-        # FIX: Use session_state variable instead of widget key to avoid StreamlitAPIException
+        # Valor por defecto del ID de edicion
         if "edit_id_value" not in st.session_state:
             st.session_state.edit_id_value = 0
+
+        # RESET DIFERIDO: se aplica ANTES de crear el widget (un widget con key no se
+        # puede modificar despues de instanciarlo). Las acciones que guardan ponen la
+        # bandera 'reset_edit_id' y hacen rerun; aqui el ID vuelve a 0 solo si guardo bien.
+        if st.session_state.pop("reset_edit_id", False):
+            st.session_state.edit_id_value = 0
+
         with edit_col1:
-            edit_id = st.number_input("ID del Certificate", min_value=0, step=1, value=st.session_state.edit_id_value)
+            edit_id = st.number_input("ID del Certificate", min_value=0, step=1, key="edit_id_value")
+
+        # Confirmacion persistente (el st.success de antes se perdia con el rerun)
+        if edit_id == 0:
+            if st.session_state.get("edit_flash"):
+                st.success(st.session_state.edit_flash)
+        else:
+            st.session_state.edit_flash = None
+
         if edit_id == 0:
             st.info("Ingresa un ID de certificate para editar o eliminar.")
         else:
@@ -785,8 +800,13 @@ elif page == "📋 Ver / Editar / Eliminar":
                             }
                             success, response = update_certificate(edit_id, data)
                             if success:
-                                st.success("✅ Certificate actualizado correctamente!")
-                                st.session_state.edit_id_value = 0
+                                # Limpiar el ID (vuelve a 0) para buscar otro registro
+                                st.session_state.edit_flash = (
+                                    f"✅ Certificate {data['ticket_number']} actualizado correctamente. "
+                                    "El ID volvio a 0: ingresa otro ID para buscar un nuevo registro."
+                                )
+                                st.session_state.reset_edit_id = True
+                                st.session_state.show_delete_confirm = False
                                 st.rerun()
                             else:
                                 st.error(f"❌ Error: {response}")
@@ -809,8 +829,9 @@ elif page == "📋 Ver / Editar / Eliminar":
                                 if del_pwd == ADMIN_PASSWORD:
                                     success, response = delete_certificate(edit_id)
                                     if success:
-                                        st.success("🗑️ Certificate eliminado correctamente!")
-                                        st.session_state.edit_id_value = 0
+                                        # Limpiar el ID (vuelve a 0) para buscar otro registro
+                                        st.session_state.edit_flash = f"🗑️ Certificate ID {edit_id} eliminado correctamente."
+                                        st.session_state.reset_edit_id = True
                                         st.session_state.show_delete_confirm = False
                                         st.rerun()
                                     else:
